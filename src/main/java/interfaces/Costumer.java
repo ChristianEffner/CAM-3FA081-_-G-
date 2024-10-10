@@ -37,7 +37,7 @@ public class Costumer implements ICustomer {
 
     @Override
     public String getLastName() {
-        return "";
+        return null;
     }
 
     @Override
