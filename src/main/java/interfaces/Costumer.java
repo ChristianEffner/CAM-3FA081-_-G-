@@ -32,7 +32,7 @@ public class Costumer implements ICustomer {
 
     @Override
     public String getFirstName() {
-        return "";
+        return null;
     }
 
     @Override
