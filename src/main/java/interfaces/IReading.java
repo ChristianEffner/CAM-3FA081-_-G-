@@ -20,5 +20,13 @@ public interface IReading {
     Boolean getSubstitute();
     String printDateOfReading();
 
-
 }
+
+
+
+
+
+
+
+
+
