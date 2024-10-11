@@ -12,6 +12,7 @@ public class Main {
         DatabaseConnection dbManager = new DatabaseConnection();
         dbManager.openConnection(getProperties());
         dbManager.createAllTables();
+        dbManager.closeConnection();
 
     }
 

@@ -1,13 +1,13 @@
 package interfaces;
-
 import enums.Gender;
-
 import java.time.LocalDate;
 
 public class Costumer implements ICustomer {
 
     private String firstName;
     private String lastName;
+    private LocalDate birthday;
+
 
 
     @Override
@@ -32,17 +32,17 @@ public class Costumer implements ICustomer {
 
     @Override
     public String getFirstName() {
-        return null;
+        return firstName;
     }
 
     @Override
     public String getLastName() {
-        return null;
+        return lastName;
     }
 
     @Override
     public LocalDate getBirthDate() {
-        return null;
+        return birthday;
     }
 
     @Override

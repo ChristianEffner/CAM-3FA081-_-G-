@@ -6,6 +6,15 @@ import java.time.LocalDate;
 
 public class Reading implements IReading{
 
+    private String comment;
+    private ICustomer customer;
+    private LocalDate dateOfReading;
+    private KindOfMeter kindOfMeter;
+    private Double meterCount;
+    private String meterID;
+    private Boolean substitude;
+
+
     @Override
     public void setComment(String comment) {
 
@@ -43,41 +52,41 @@ public class Reading implements IReading{
 
     @Override
     public String getComment() {
-        return "";
+        return comment;
     }
 
     @Override
     public ICustomer getCustomer() {
-        return null;
+        return customer;
     }
 
     @Override
     public LocalDate getDateOfReading() {
-        return null;
+        return dateOfReading;
     }
 
     @Override
     public KindOfMeter getKindOfMeter() {
-        return null;
+        return kindOfMeter;
     }
 
     @Override
     public Double getMeterCount() {
-        return 0.0;
+        return meterCount;
     }
 
     @Override
     public String getMeterId() {
-        return "";
+        return meterID;
     }
 
     @Override
     public Boolean getSubstitute() {
-        return null;
+        return substitude;
     }
 
     @Override
     public String printDateOfReading() {
-        return "";
+        return null;
     }
 }
