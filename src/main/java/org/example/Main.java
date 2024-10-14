@@ -9,25 +9,12 @@ import java.time.LocalDate;
 import java.util.Properties;
 import java.util.UUID;
 
-import CRUD.CRUDCustomer;
 import interfaces.ID;
 
 public class Main {
     public static void main(String[] args) {
 
-        ID id = new ID();
-        id.setId(UUID.randomUUID());
 
-        Costumer costumer1 = new Costumer(id, "Chris", "Effner", LocalDate.of(1999, 1, 19), Gender.M);
-
-        DatabaseConnection dbManager = new DatabaseConnection();
-
-        dbManager.openConnection(getProperties());
-
-        CRUDCustomer crudCustomer = new CRUDCustomer();
-        crudCustomer.createCustomer(costumer1);
-
-        dbManager.closeConnection();
 
     }
 
