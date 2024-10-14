@@ -25,11 +25,6 @@ public class Main {
 
         System.out.println(customer123.getFirstName());
 
-
-
-
-
-
         dbManager.closeConnection();
 
     }
