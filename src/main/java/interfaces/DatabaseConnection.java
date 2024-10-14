@@ -132,4 +132,45 @@ public class DatabaseConnection implements IDatabaseConnection {
     public  Connection getConnection() {
         return connection;
     }
+
+    public void deleteCustomerById(String customerId) {
+        String deleteCustomerSQL = "DELETE FROM Customer WHERE id = ?;";
+
+        try (var preparedStatement = connection.prepareStatement(deleteCustomerSQL)) {
+            preparedStatement.setString(1, customerId);
+
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Customer with ID " + customerId + " was deleted successfully.");
+            } else {
+                System.out.println("No customer found with ID " + customerId);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateCustomerById(String customerId, String firstName, String lastName, String birthDate, String gender) {
+        String updateCustomerSQL = "UPDATE Customer SET first_name = ?, last_name = ?, birth_date = ?, gender = ? WHERE id = ?;";
+
+        try (var preparedStatement = connection.prepareStatement(updateCustomerSQL)) {
+            preparedStatement.setString(1, firstName);
+            preparedStatement.setString(2, lastName);
+            preparedStatement.setString(3, birthDate);
+            preparedStatement.setString(4, gender);
+            preparedStatement.setString(5, customerId);
+
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Customer with ID " + customerId + " was updated successfully.");
+            } else {
+                System.out.println("No customer found with ID " + customerId);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
