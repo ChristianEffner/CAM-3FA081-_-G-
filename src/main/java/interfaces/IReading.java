@@ -18,7 +18,7 @@ public interface IReading {
     Double getMeterCount();
     String getMeterId();
     Boolean getSubstitute();
-    String printDateOfReading();
+    LocalDate printDateOfReading();
 
 }
 

@@ -7,7 +7,7 @@ import java.util.Properties;
 
 public class DatabaseConnection implements IDatabaseConnection {
 
-    Connection connection;
+     Connection connection;
     IDatabaseConnection dbConnection;
     private static DatabaseConnection INSTANCE;
 
@@ -75,6 +75,25 @@ public class DatabaseConnection implements IDatabaseConnection {
 
     @Override
     public void truncateAllTables() {
+        String truncateCustomerTableSQL = "TRUNCATE TABLE Customer;";
+        String truncateReadingTableSQL = "TRUNCATE TABLE Reading;";
+
+        try (Statement statement = connection.createStatement()) {
+
+            statement.executeUpdate("SET FOREIGN_KEY_CHECKS = 0;");
+
+            statement.executeUpdate(truncateReadingTableSQL);
+            System.out.println("Reading table truncated successfully.");
+
+            statement.executeUpdate(truncateCustomerTableSQL);
+            System.out.println("Customer table truncated successfully.");
+
+            statement.executeUpdate("SET FOREIGN_KEY_CHECKS = 1;");
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -108,5 +127,9 @@ public class DatabaseConnection implements IDatabaseConnection {
         } else {
             System.out.println("Connection is already closed");
         }
+    }
+
+    public  Connection getConnection() {
+        return connection;
     }
 }

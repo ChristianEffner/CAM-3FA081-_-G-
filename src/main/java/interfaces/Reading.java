@@ -1,7 +1,5 @@
 package interfaces;
-
 import enums.KindOfMeter;
-
 import java.time.LocalDate;
 
 public class Reading implements IReading{
@@ -17,36 +15,43 @@ public class Reading implements IReading{
 
     @Override
     public void setComment(String comment) {
+        this.comment = comment;
 
     }
 
     @Override
     public void setCustomer(ICustomer customer) {
+        this.customer = customer;
 
     }
 
     @Override
     public void setDateOfReading(LocalDate dateOfReading) {
+        this.dateOfReading = dateOfReading;
 
     }
 
     @Override
     public void setKindOfMeter(KindOfMeter kindOfMeter) {
+        this.kindOfMeter = kindOfMeter;
 
     }
 
     @Override
     public void setMeterCount(Double meterCount) {
+        this.meterCount = meterCount;
 
     }
 
     @Override
     public void setMeterId(String meterId) {
+        this.meterID = meterId;
 
     }
 
     @Override
     public void setSubstitute(Boolean substitute) {
+        this.substitude = substitute;
 
     }
 
@@ -86,7 +91,8 @@ public class Reading implements IReading{
     }
 
     @Override
-    public String printDateOfReading() {
+    public LocalDate printDateOfReading() {
+        System.out.println(dateOfReading);
         return null;
     }
 }
