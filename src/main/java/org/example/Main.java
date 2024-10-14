@@ -21,9 +21,12 @@ public class Main {
 
         dbManager.openConnection(getProperties());
 
-        Costumer customer123 = dbManager.readCustomer(UUID.fromString("bc7b2eb0-cb77-40fd-bd26-05d5c4e76b43"));
+        Costumer customer123 = dbManager.deleteCustomerById(UUID.fromString("87e3e3b0-52c6-43d4-8347-b3af06da5680"));
 
-        System.out.println(customer123.getFirstName());
+        dbManager.deleteCustomerById(costumer1.getId());
+
+
+
 
         dbManager.closeConnection();
 

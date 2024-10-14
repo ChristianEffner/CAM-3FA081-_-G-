@@ -176,13 +176,14 @@ public class DatabaseConnection implements IDatabaseConnection {
         }
     }
 
-    public void deleteCustomerById(String customerId) {
+    public Costumer deleteCustomerById(UUID customerId) {
         String deleteCustomerSQL = "DELETE FROM Customer WHERE id = ?;";
+        Connection connection1 = DatabaseConnection.getInstance().connection;
 
-        try (var preparedStatement = connection.prepareStatement(deleteCustomerSQL)) {
-            preparedStatement.setString(1, customerId);
+        try ( PreparedStatement statement= connection.prepareStatement(deleteCustomerSQL)) {
+            statement.setObject(1, customerId);
 
-            int rowsAffected = preparedStatement.executeUpdate();
+            int rowsAffected = statement.executeUpdate();
             if (rowsAffected > 0) {
                 System.out.println("Customer with ID " + customerId + " was deleted successfully.");
             } else {
@@ -192,6 +193,7 @@ public class DatabaseConnection implements IDatabaseConnection {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     public void updateCustomerById(String customerId, String firstName, String lastName, String birthDate, String gender) {
