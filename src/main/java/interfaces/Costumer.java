@@ -1,16 +1,17 @@
 package interfaces;
 import enums.Gender;
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class Costumer implements ICustomer {
 
-    private ID id;
+    private UUID id;
     private String firstName;
     private String lastName;
     private LocalDate birthday;
     private Gender gender;
 
-    public Costumer(ID id, String firstName, String lastName,LocalDate birthday, Gender gender) {
+    public Costumer(UUID id, String firstName, String lastName,LocalDate birthday, Gender gender) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -18,11 +19,11 @@ public class Costumer implements ICustomer {
         this.gender = gender;
     }
 
-    public ID getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(ID id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

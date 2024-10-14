@@ -1,19 +1,25 @@
 package interfaces;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+
+import enums.Gender;
+
+import java.sql.*;
+import java.time.LocalDate;
 import java.util.Properties;
+import java.util.UUID;
 
 public class DatabaseConnection implements IDatabaseConnection {
 
-     Connection connection;
+    Connection connection;
     IDatabaseConnection dbConnection;
     private static DatabaseConnection INSTANCE;
 
+    private DatabaseConnection() {
+
+    }
+
 
     public static DatabaseConnection getInstance() {
-        if(INSTANCE == null) {
+        if (INSTANCE == null) {
             INSTANCE = new DatabaseConnection();
         }
 
@@ -23,7 +29,7 @@ public class DatabaseConnection implements IDatabaseConnection {
 
     @Override
     public IDatabaseConnection openConnection(Properties properties) {
-        String url = properties.getProperty(  "db.url");
+        String url = properties.getProperty("db.url");
         String user = properties.getProperty("db.user");
         String pw = properties.getProperty("db.pw");
 
@@ -129,8 +135,45 @@ public class DatabaseConnection implements IDatabaseConnection {
         }
     }
 
-    public  Connection getConnection() {
-        return connection;
+    public void addNewCustomer(Costumer customer) {
+        String query = "INSERT INTO customer (id, first_name, last_name, birth_date, gender) "
+                + String.format("VALUES ('%s', '%s', '%s' , '%s', '%s');", customer.getId(), customer.getFirstName(), customer.getLastName(), customer.getBirthDate(), customer.getGender());
+        executeQuery(query);
+    }
+
+    public Costumer readCustomer(UUID id) {
+
+        String selectCustomer = "SELECT * FROM customer WHERE id = ?;";
+        Connection connection = DatabaseConnection.getInstance().connection;
+
+        try (PreparedStatement statement = connection.prepareStatement(selectCustomer)) {
+            statement.setObject(1, id);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                String x = resultSet.getString("first_name");
+                String y = resultSet.getString("last_name");
+                LocalDate z = resultSet.getDate("birth_date").toLocalDate();
+                Gender gender = Gender.valueOf(resultSet.getString("gender")); // Enum auslesen
+
+                return new Costumer(id, x, y, z, gender);
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+
+    private void executeQuery(String query) {
+        try {
+            Statement statement = connection.createStatement();
+            statement.execute(query);
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
     }
 
     public void deleteCustomerById(String customerId) {
@@ -174,3 +217,7 @@ public class DatabaseConnection implements IDatabaseConnection {
     }
 
 }
+
+
+
+

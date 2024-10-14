@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.Properties;
 import java.util.UUID;
 
+import CRUD.CRUDCustomer;
 import interfaces.ID;
 
 public class Main {
@@ -23,7 +24,8 @@ public class Main {
 
         dbManager.openConnection(getProperties());
 
-        dbManager.createAllTables();
+        CRUDCustomer crudCustomer = new CRUDCustomer();
+        crudCustomer.createCustomer(costumer1);
 
         dbManager.closeConnection();
 
