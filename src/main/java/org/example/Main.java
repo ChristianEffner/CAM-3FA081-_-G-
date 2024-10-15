@@ -21,12 +21,13 @@ public class Main {
 
         dbManager.openConnection(getProperties());
 
-        Costumer customer123 = dbManager.deleteCustomerById(UUID.fromString("87e3e3b0-52c6-43d4-8347-b3af06da5680"));
+        //Costumer customer123 = dbManager.deleteCustomerById(UUID.fromString("87e3e3b0-52c6-43d4-8347-b3af06da5680"));
 
         dbManager.deleteCustomerById(costumer1.getId());
 
+        //dbManager.addNewCustomer(costumer1);
 
-
+        //dbManager.updateCustomerById(costumer1.getId(), "Alper", "Caliskan", LocalDate.of(1999, 1, 19), String.valueOf(Gender.M));
 
         dbManager.closeConnection();
 

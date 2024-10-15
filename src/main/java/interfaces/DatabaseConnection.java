@@ -196,19 +196,24 @@ public class DatabaseConnection implements IDatabaseConnection {
         return null;
     }
 
-    public void updateCustomerById(String customerId, String firstName, String lastName, String birthDate, String gender) {
-        String updateCustomerSQL = "UPDATE Customer SET first_name = ?, last_name = ?, birth_date = ?, gender = ? WHERE id = ?;";
+    public Costumer updateCustomerById(UUID customerId, String firstName, String lastName, LocalDate birthDate, String gender) {
+        String updateCustomerSQL = "UPDATE customer SET first_name = ?, last_name = ?, birth_date = ?, gender = ? WHERE id = ?;";
+        Connection connection = DatabaseConnection.getInstance().connection;
 
-        try (var preparedStatement = connection.prepareStatement(updateCustomerSQL)) {
-            preparedStatement.setString(1, firstName);
-            preparedStatement.setString(2, lastName);
-            preparedStatement.setString(3, birthDate);
-            preparedStatement.setString(4, gender);
-            preparedStatement.setString(5, customerId);
+        try (PreparedStatement statement = connection.prepareStatement(updateCustomerSQL)) {
+            // Setze die Parameter für das Update-Statement
+            statement.setString(1, firstName);
+            statement.setString(2, lastName);
+            statement.setDate(3, java.sql.Date.valueOf(birthDate)); // LocalDate zu SQL Date konvertieren
+            statement.setString(4, gender); // Gender als String speichern
+            statement.setObject(5, customerId);
 
-            int rowsAffected = preparedStatement.executeUpdate();
+            int rowsAffected = statement.executeUpdate();
             if (rowsAffected > 0) {
                 System.out.println("Customer with ID " + customerId + " was updated successfully.");
+
+                // Nach dem Update den aktualisierten Kunden auslesen und zurückgeben
+                return readCustomer(customerId); // Den aktualisierten Kunden aus der Datenbank lesen
             } else {
                 System.out.println("No customer found with ID " + customerId);
             }
@@ -216,7 +221,11 @@ public class DatabaseConnection implements IDatabaseConnection {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        return null; // Falls das Update fehlschlägt oder der Kunde nicht gefunden wird
     }
+
+
 
 }
 
