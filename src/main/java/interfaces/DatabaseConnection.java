@@ -4,6 +4,7 @@ import enums.Gender;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -154,7 +155,7 @@ public class DatabaseConnection implements IDatabaseConnection {
                 String x = resultSet.getString("first_name");
                 String y = resultSet.getString("last_name");
                 LocalDate z = resultSet.getDate("birth_date").toLocalDate();
-                Gender gender = Gender.valueOf(resultSet.getString("gender")); // Enum auslesen
+                Gender gender = Gender.valueOf(resultSet.getString("gender"));
 
                 return new Costumer(id, x, y, z, gender);
 
@@ -196,36 +197,27 @@ public class DatabaseConnection implements IDatabaseConnection {
         return null;
     }
 
-    public Costumer updateCustomerById(UUID customerId, String firstName, String lastName, LocalDate birthDate, String gender) {
-        String updateCustomerSQL = "UPDATE customer SET first_name = ?, last_name = ?, birth_date = ?, gender = ? WHERE id = ?;";
-        Connection connection = DatabaseConnection.getInstance().connection;
+    public void updateCustomerById(Costumer costumer) {
+        String updateCustomerSQL = "UPDATE Customer SET first_name = ?, last_name = ?, birth_date = ?, gender = ? WHERE id = ?;";
 
-        try (PreparedStatement statement = connection.prepareStatement(updateCustomerSQL)) {
-            // Setze die Parameter für das Update-Statement
-            statement.setString(1, firstName);
-            statement.setString(2, lastName);
-            statement.setDate(3, java.sql.Date.valueOf(birthDate)); // LocalDate zu SQL Date konvertieren
-            statement.setString(4, gender); // Gender als String speichern
-            statement.setObject(5, customerId);
+        try (var preparedStatement = connection.prepareStatement(updateCustomerSQL)) {
+            preparedStatement.setString(1, costumer.getFirstName());
+            preparedStatement.setString(2, costumer.getLastName());
+            preparedStatement.setDate(3, java.sql.Date.valueOf(costumer.getBirthDate()));
+            preparedStatement.setString(4, costumer.getGender().toString());
+            preparedStatement.setString(5, costumer.getId().toString());
 
-            int rowsAffected = statement.executeUpdate();
+            int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("Customer with ID " + customerId + " was updated successfully.");
-
-                // Nach dem Update den aktualisierten Kunden auslesen und zurückgeben
-                return readCustomer(customerId); // Den aktualisierten Kunden aus der Datenbank lesen
+                System.out.println("Customer with ID " + costumer.getId() + " was updated successfully.");
             } else {
-                System.out.println("No customer found with ID " + customerId);
+                System.out.println("No customer found with ID " + costumer.getId());
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        return null; // Falls das Update fehlschlägt oder der Kunde nicht gefunden wird
     }
-
-
 
 }
 
