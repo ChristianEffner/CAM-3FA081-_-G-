@@ -12,7 +12,7 @@ import java.util.UUID;
 public class Main {
     public static void main(String[] args) {
 
-        UUID id = UUID.fromString("5e18f47a-ffbb-4813-a813-b36be211c114");
+        UUID id = UUID.fromString("6c2c6ba8-633f-45e2-a6d9-3b320989ede1");
 
         //UUID.randomUUID();
 
@@ -26,7 +26,7 @@ public class Main {
 
 
         dbManager.deleteCustomerById(costumer1.getId());
-
+        //dbManager.updateCustomerById(costumer1);
 
 
         dbManager.closeConnection();
