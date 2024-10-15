@@ -1,7 +1,10 @@
 package org.example;
 import enums.Gender;
+import enums.KindOfMeter;
 import interfaces.Costumer;
 import interfaces.DatabaseConnection;
+import interfaces.Reading;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,20 +15,24 @@ import java.util.UUID;
 public class Main {
     public static void main(String[] args) {
 
-        UUID id = UUID.fromString("5e18f47a-ffbb-4813-a813-b36be211c114");
+        UUID customerId = UUID.fromString("5e18f47a-ffbb-4813-a813-b36be211c114");
 
-        //UUID.randomUUID();
+        UUID readingId = UUID.randomUUID();
 
 
 
-        Costumer costumer1 = new Costumer(id, "Christian", "E.", LocalDate.of(1999, 1, 19), Gender.M);
+        Costumer costumer1 = new Costumer(customerId, "Christian", "E.", LocalDate.of(1999, 1, 19), Gender.M);
+        Reading reading1 = new Reading(readingId, "this is a test", costumer1, LocalDate.of(2005, 1, 1), KindOfMeter.HEIZUNG, 18.0, "test1", Boolean.FALSE);
+
 
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
 
         dbManager.openConnection(getProperties());
 
+        dbManager.addNewCustomer(costumer1);
 
-        dbManager.deleteCustomerById(costumer1.getId());
+
+        dbManager.addNewReading(reading1);
 
 
 

@@ -1,10 +1,7 @@
 package interfaces;
-
 import enums.Gender;
-
 import java.sql.*;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -60,7 +57,7 @@ public class DatabaseConnection implements IDatabaseConnection {
                 "comment VARCHAR(255)," +
                 "customer_id UUID," +
                 "date_of_reading DATE," +
-                "kind_of_meter ENUM('HEATING', 'ELECTRICITY', 'WATER', 'UNKNOWN') NOT NULL," +
+                "kind_of_meter ENUM('HEIZUNG', 'STROM', 'WASSER', 'UNBEKANNT') NOT NULL," +
                 "meter_count DOUBLE," +
                 "meter_id VARCHAR(255)," +
                 "substitute BOOLEAN," +
@@ -142,6 +139,34 @@ public class DatabaseConnection implements IDatabaseConnection {
         executeQuery(query);
     }
 
+
+    public void addNewReading(Reading reading) {
+
+        String query = "INSERT INTO reading (id, comment, customer_id, date_of_reading, kind_of_meter, meter_count, meter_id, substitute) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection connection = DatabaseConnection.getInstance().connection;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            // Setze die Parameter für die Abfrage
+            preparedStatement.setString(1, reading.getId().toString());
+            preparedStatement.setString(2, reading.getComment());
+            preparedStatement.setString(3, reading.getCustomer().getId().toString());
+            preparedStatement.setDate(4, java.sql.Date.valueOf(reading.getDateOfReading())); // assuming it's a LocalDate
+            preparedStatement.setString(5, reading.getKindOfMeter().toString());
+            preparedStatement.setString(6, reading.getMeterCount().toString());
+            preparedStatement.setString(7, reading.getMeterId());
+            preparedStatement.setBoolean(8, reading.getSubstitute());
+
+            // Führe die SQL-Abfrage aus
+            preparedStatement.executeUpdate();
+            System.out.println("Datensatz erfolgreich eingefügt!");
+
+        } catch (SQLException e) {
+            System.err.println("Fehler beim Einfügen des Datensatzes: " + e.getMessage());
+        }
+    }
+
+
     public Costumer readCustomer(UUID id) {
 
         String selectCustomer = "SELECT * FROM customer WHERE id = ?;";
@@ -218,6 +243,8 @@ public class DatabaseConnection implements IDatabaseConnection {
             e.printStackTrace();
         }
     }
+
+
 
 }
 

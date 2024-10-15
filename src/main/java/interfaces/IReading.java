@@ -2,7 +2,7 @@ package interfaces;
 import enums.KindOfMeter;
 import java.time.LocalDate;
 
-public interface IReading {
+public interface IReading extends IID{
 
     void setComment(String comment);
     void setCustomer(ICustomer customer);
