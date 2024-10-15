@@ -1,10 +1,7 @@
 package interfaces;
-
 import enums.Gender;
-
 import java.sql.*;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -60,7 +57,7 @@ public class DatabaseConnection implements IDatabaseConnection {
                 "comment VARCHAR(255)," +
                 "customer_id UUID," +
                 "date_of_reading DATE," +
-                "kind_of_meter ENUM('HEATING', 'ELECTRICITY', 'WATER', 'UNKNOWN') NOT NULL," +
+                "kind_of_meter ENUM('HEIZUNG', 'STROM', 'WASSER', 'UNBEKANNT') NOT NULL," +
                 "meter_count DOUBLE," +
                 "meter_id VARCHAR(255)," +
                 "substitute BOOLEAN," +
@@ -142,6 +139,34 @@ public class DatabaseConnection implements IDatabaseConnection {
         executeQuery(query);
     }
 
+
+    public void addNewReading(Reading reading) {
+
+        String query = "INSERT INTO reading (id, comment, customer_id, date_of_reading, kind_of_meter, meter_count, meter_id, substitute) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection connection = DatabaseConnection.getInstance().connection;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            // Setze die Parameter für die Abfrage
+            preparedStatement.setString(1, reading.getId().toString());
+            preparedStatement.setString(2, reading.getComment());
+            preparedStatement.setString(3, reading.getCustomer().getId().toString());
+            preparedStatement.setDate(4, java.sql.Date.valueOf(reading.getDateOfReading())); // assuming it's a LocalDate
+            preparedStatement.setString(5, reading.getKindOfMeter().toString());
+            preparedStatement.setString(6, reading.getMeterCount().toString());
+            preparedStatement.setString(7, reading.getMeterId());
+            preparedStatement.setBoolean(8, reading.getSubstitute());
+
+            // Führe die SQL-Abfrage aus
+            preparedStatement.executeUpdate();
+            System.out.println("Datensatz erfolgreich eingefügt!");
+
+        } catch (SQLException e) {
+            System.err.println("Fehler beim Einfügen des Datensatzes: " + e.getMessage());
+        }
+    }
+
+
     public Costumer readCustomer(UUID id) {
 
         String selectCustomer = "SELECT * FROM customer WHERE id = ?;";
@@ -181,7 +206,7 @@ public class DatabaseConnection implements IDatabaseConnection {
         String deleteCustomerSQL = "DELETE FROM Customer WHERE id = ?;";
         Connection connection1 = DatabaseConnection.getInstance().connection;
 
-        try (PreparedStatement statement = connection.prepareStatement(deleteCustomerSQL)) {
+        try ( PreparedStatement statement= connection.prepareStatement(deleteCustomerSQL)) {
             statement.setObject(1, customerId);
 
             int rowsAffected = statement.executeUpdate();
@@ -205,7 +230,7 @@ public class DatabaseConnection implements IDatabaseConnection {
             preparedStatement.setString(2, costumer.getLastName());
             preparedStatement.setDate(3, java.sql.Date.valueOf(costumer.getBirthDate()));
             preparedStatement.setString(4, costumer.getGender().toString());
-            preparedStatement.setObject(5, costumer.getId());
+            preparedStatement.setString(5, costumer.getId().toString());
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
@@ -218,51 +243,6 @@ public class DatabaseConnection implements IDatabaseConnection {
             e.printStackTrace();
         }
     }
-
-    public Reading deleteReadingById(UUID readingId) {
-        String deleteReadingSQL = "DELETE FROM Reading WHERE id = ?;";
-        Connection connection1 = DatabaseConnection.getInstance().connection;
-
-        try (PreparedStatement statement= connection.prepareStatement(deleteReadingSQL)) {
-            statement.setObject(1, readingId);
-
-            int rowsAffected = statement.executeUpdate();
-            if (rowsAffected > 0) {
-                System.out.println("Reading with ID " + readingId + " was deleted successfully.");
-            } else {
-                System.out.println("No reading found with ID " + readingId);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-//    public void updateReadingById(Reading reading) {
-//        String updateReadingSQL = "UPDATE Reading SET comment = ?, date_of_reading = ?, kind_of_meter = ?, meter_count = ?, meter_id = ?, substitute = ? WHERE id = ?;";
-//
-//        try (var preparedStatement = connection.prepareStatement(updateReadingSQL)) {
-//            preparedStatement.setString(1, reading.getComment());
-//            preparedStatement.setObject(2, reading.getCustomer());
-//            preparedStatement.setDate(3, java.sql.Date.valueOf(reading.getDateOfReading()));
-//            preparedStatement.setString(4, reading.getKindOfMeter().toString());
-//            preparedStatement.setDouble(5, reading.getMeterCount());
-//            preparedStatement.setString(6, reading.getMeterId());
-//            preparedStatement.setBoolean(7, reading.getSubstitute());
-//            preparedStatement.setObject(8, reading.getId());
-//
-//            int rowsAffected = preparedStatement.executeUpdate();
-//            if (rowsAffected > 0) {
-//                System.out.println("Reading with ID " + reading.getId() + " was updated successfully.");
-//            } else {
-//                System.out.println("No reading found with ID " + reading.getId());
-//            }
-//
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//    }
 
 
 

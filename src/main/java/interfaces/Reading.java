@@ -1,9 +1,11 @@
 package interfaces;
 import enums.KindOfMeter;
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class Reading implements IReading{
 
+    private UUID id;
     private String comment;
     private ICustomer customer;
     private LocalDate dateOfReading;
@@ -11,6 +13,19 @@ public class Reading implements IReading{
     private Double meterCount;
     private String meterID;
     private Boolean substitude;
+
+    public Reading(UUID id, String comment, ICustomer customer, LocalDate dateOfReading, KindOfMeter kindOfMeter, Double meterCount, String meterID, Boolean substitude) {
+
+        this.id = id;
+        this.comment = comment;
+        this.customer = customer;
+        this.dateOfReading = dateOfReading;
+        this.kindOfMeter = kindOfMeter;
+        this.meterCount = meterCount;
+        this.meterID = meterID;
+        this.substitude = substitude;
+    }
+
 
 
     @Override
@@ -94,5 +109,15 @@ public class Reading implements IReading{
     public LocalDate printDateOfReading() {
         System.out.println(dateOfReading);
         return null;
+    }
+
+    @Override
+    public UUID getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(UUID id) {
+        this.id = id;
     }
 }

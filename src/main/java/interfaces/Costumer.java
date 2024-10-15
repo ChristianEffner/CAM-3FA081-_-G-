@@ -19,13 +19,7 @@ public class Costumer implements ICustomer {
         this.gender = gender;
     }
 
-    public UUID getId() {
-        return id;
-    }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
 
     @Override
     public void setFirstName(String firstName) {
@@ -68,4 +62,14 @@ public class Costumer implements ICustomer {
     }
 
 
+    @Override
+    public UUID getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(UUID id) {
+        this.id = id;
+
+    }
 }

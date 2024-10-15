@@ -2,7 +2,7 @@ package interfaces;
 import enums.Gender;
 import java.time.LocalDate;
 
-public interface ICustomer {
+public interface ICustomer extends IID {
 
     void setFirstName(String firstName);
     void setLastName(String lastname);
