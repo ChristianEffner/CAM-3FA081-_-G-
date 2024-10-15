@@ -4,6 +4,7 @@ import enums.Gender;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -154,7 +155,7 @@ public class DatabaseConnection implements IDatabaseConnection {
                 String x = resultSet.getString("first_name");
                 String y = resultSet.getString("last_name");
                 LocalDate z = resultSet.getDate("birth_date").toLocalDate();
-                Gender gender = Gender.valueOf(resultSet.getString("gender")); // Enum auslesen
+                Gender gender = Gender.valueOf(resultSet.getString("gender"));
 
                 return new Costumer(id, x, y, z, gender);
 
@@ -196,21 +197,21 @@ public class DatabaseConnection implements IDatabaseConnection {
         return null;
     }
 
-    public void updateCustomerById(String customerId, String firstName, String lastName, String birthDate, String gender) {
+    public void updateCustomerById(Costumer costumer) {
         String updateCustomerSQL = "UPDATE Customer SET first_name = ?, last_name = ?, birth_date = ?, gender = ? WHERE id = ?;";
 
         try (var preparedStatement = connection.prepareStatement(updateCustomerSQL)) {
-            preparedStatement.setString(1, firstName);
-            preparedStatement.setString(2, lastName);
-            preparedStatement.setString(3, birthDate);
-            preparedStatement.setString(4, gender);
-            preparedStatement.setString(5, customerId);
+            preparedStatement.setString(1, costumer.getFirstName());
+            preparedStatement.setString(2, costumer.getLastName());
+            preparedStatement.setDate(3, java.sql.Date.valueOf(costumer.getBirthDate()));
+            preparedStatement.setString(4, costumer.getGender().toString());
+            preparedStatement.setString(5, costumer.getId().toString());
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("Customer with ID " + customerId + " was updated successfully.");
+                System.out.println("Customer with ID " + costumer.getId() + " was updated successfully.");
             } else {
-                System.out.println("No customer found with ID " + customerId);
+                System.out.println("No customer found with ID " + costumer.getId());
             }
 
         } catch (SQLException e) {
