@@ -30,11 +30,11 @@ public class Main {
         dbManager.openConnection(getProperties());
 
         //dbManager.addNewCustomer(costumer1);
-
+        dbManager.createAllTables();
 
         //dbManager.addNewReading(reading1);
 
-        dbManager.addNewReading(reading1);
+        //dbManager.addNewReading(reading1);
         dbManager.closeConnection();
 
     }
