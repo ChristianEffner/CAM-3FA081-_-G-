@@ -275,6 +275,76 @@ public class DatabaseConnection implements IDatabaseConnection {
         }
     }
 
+    public Reading readReading(UUID id) {
+
+        String selectReading = "SELECT * FROM reading WHERE id = ?;";
+        Connection connection = DatabaseConnection.getInstance().connection;
+
+        try (PreparedStatement statement = connection.prepareStatement(selectReading)) {
+            statement.setObject(1, id);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                String comment = resultSet.getString("comment");
+                String cust_id = resultSet.getString("customer_id");
+                String date_of_reading = resultSet.getString("date_of_reading");
+                String kind_of_meter = resultSet.getString("kind_of_meter");
+                String meter_count = resultSet.getString("meter_count");
+                String meter_id = resultSet.getString("meter_id");
+                String substitute = resultSet.getString("substitute");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    public Reading deleteReadingById(UUID readingId) {
+        String deleteReadingSQL = "DELETE FROM Reading WHERE id = ?;";
+        Connection connection1 = DatabaseConnection.getInstance().connection;
+
+        try (PreparedStatement statement= connection.prepareStatement(deleteReadingSQL)) {
+            statement.setObject(1, readingId);
+
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Reading with ID " + readingId + " was deleted successfully.");
+            } else {
+                System.out.println("No reading found with ID " + readingId);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void updateReadingById(Reading reading) {
+        String updateReadingSQL = "UPDATE Reading SET comment = ?, date_of_reading = ?, kind_of_meter = ?, meter_count = ?, meter_id = ?, substitute = ? WHERE id = ?;";
+
+        try (var preparedStatement = connection.prepareStatement(updateReadingSQL)) {
+            preparedStatement.setString(1, reading.getComment());
+            preparedStatement.setObject(2, reading.getCustomer());
+            preparedStatement.setDate(3, java.sql.Date.valueOf(reading.getDateOfReading()));
+            preparedStatement.setString(4, reading.getKindOfMeter().toString());
+            preparedStatement.setDouble(5, reading.getMeterCount());
+            preparedStatement.setString(6, reading.getMeterId());
+            preparedStatement.setBoolean(7, reading.getSubstitute());
+            preparedStatement.setObject(8, reading.getId());
+
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Reading with ID " + reading.getId() + " was updated successfully.");
+            } else {
+                System.out.println("No reading found with ID " + reading.getId());
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 
 }

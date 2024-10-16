@@ -15,7 +15,7 @@ import java.util.UUID;
 public class Main {
     public static void main(String[] args) {
 
-        UUID customerId = UUID.fromString("5e18f47a-ffbb-4813-a813-b36be211c114");
+        UUID customerId = UUID.fromString("23b456d6-71ec-4c3a-a5ff-bc939a67ed70");
 
         UUID readingId = UUID.randomUUID();
 
@@ -27,13 +27,12 @@ public class Main {
 
         dbManager.openConnection(getProperties());
 
-        dbManager.addNewCustomer(costumer1);
+        //dbManager.addNewCustomer(costumer1);
 
+
+        //dbManager.addNewReading(reading1);
 
         dbManager.addNewReading(reading1);
-
-
-
         dbManager.closeConnection();
 
     }
