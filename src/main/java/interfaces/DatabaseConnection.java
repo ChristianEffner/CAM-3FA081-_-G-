@@ -134,9 +134,22 @@ public class DatabaseConnection implements IDatabaseConnection {
     }
 
     public void addNewCustomer(Costumer customer) {
-        String query = "INSERT INTO customer (id, first_name, last_name, birth_date, gender) "
-                + String.format("VALUES ('%s', '%s', '%s' , '%s', '%s');", customer.getId(), customer.getFirstName(), customer.getLastName(), customer.getBirthDate(), customer.getGender());
-        executeQuery(query);
+        String query = "INSERT INTO customer (id, first_name, last_name, birth_date, gender) VALUES (?, ?, ?, ?, ?)";
+        Connection connection = DatabaseConnection.getInstance().connection;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, customer.getId().toString());
+            preparedStatement.setString(2, customer.getFirstName());
+            preparedStatement.setString(3, customer.getLastName());
+            preparedStatement.setString(4, customer.getBirthDate().toString());
+            preparedStatement.setString(5, customer.getGender().toString());
+
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.println("Fehler beim Einfügen des Datensatzes: " + e.getMessage());
+        }
     }
 
 
@@ -193,14 +206,31 @@ public class DatabaseConnection implements IDatabaseConnection {
     }
 
 
-    private void executeQuery(String query) {
-        try {
-            Statement statement = connection.createStatement();
-            statement.execute(query);
+    public Reading readReading(UUID id) {
+
+        String selectReading = "SELECT * FROM reading WHERE id = ?;";
+        Connection connection = DatabaseConnection.getInstance().connection;
+
+        try (PreparedStatement statement = connection.prepareStatement(selectReading)) {
+            statement.setObject(1, id);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                String comment = resultSet.getString("comment");
+                String cust_id = resultSet.getString("customer_id");
+                String date_of_reading = resultSet.getString("date_of_reading");
+                String kind_of_meter = resultSet.getString("kind_of_meter");
+                String meter_count = resultSet.getString("meter_count");
+                String meter_id = resultSet.getString("meter_id");
+                String substitute = resultSet.getString("substitute");
+            }
+
         } catch (SQLException e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
+        return null;
     }
+
 
     public Costumer deleteCustomerById(UUID customerId) {
         String deleteCustomerSQL = "DELETE FROM Customer WHERE id = ?;";
@@ -221,6 +251,7 @@ public class DatabaseConnection implements IDatabaseConnection {
         }
         return null;
     }
+
 
     public void updateCustomerById(Costumer costumer) {
         String updateCustomerSQL = "UPDATE Customer SET first_name = ?, last_name = ?, birth_date = ?, gender = ? WHERE id = ?;";

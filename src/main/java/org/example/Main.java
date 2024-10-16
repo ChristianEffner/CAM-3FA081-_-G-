@@ -19,8 +19,6 @@ public class Main {
 
         UUID readingId = UUID.randomUUID();
 
-
-
         Costumer costumer1 = new Costumer(customerId, "Christian", "E.", LocalDate.of(1999, 1, 19), Gender.M);
         Reading reading1 = new Reading(readingId, "this is a test", costumer1, LocalDate.of(2005, 1, 1), KindOfMeter.HEIZUNG, 18.0, "test1", Boolean.FALSE);
 
