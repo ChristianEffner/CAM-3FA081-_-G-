@@ -4,7 +4,6 @@ import enums.KindOfMeter;
 import interfaces.Costumer;
 import interfaces.DatabaseConnection;
 import interfaces.Reading;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,24 +14,19 @@ import java.util.UUID;
 public class Main {
     public static void main(String[] args) {
 
-        UUID customerId = UUID.fromString("23b456d6-71ec-4c3a-a5ff-bc939a67ed70");
+        UUID customerId = UUID.fromString("5e18f47a-ffbb-4813-a813-b36be211c114");
 
-        UUID readingId = UUID.randomUUID();
+        UUID readingId = UUID.fromString("7dd46fb0-b8e6-472f-8034-762b987d7f5a");
 
         Costumer costumer1 = new Costumer(customerId, "Christian", "E.", LocalDate.of(1999, 1, 19), Gender.M);
         Reading reading1 = new Reading(readingId, "this is a test", costumer1, LocalDate.of(2005, 1, 1), KindOfMeter.HEIZUNG, 18.0, "test1", Boolean.FALSE);
-
 
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
 
         dbManager.openConnection(getProperties());
 
-        //dbManager.addNewCustomer(costumer1);
-
-
-        //dbManager.addNewReading(reading1);
-
         dbManager.addNewReading(reading1);
+
         dbManager.closeConnection();
 
     }
