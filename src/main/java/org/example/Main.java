@@ -25,7 +25,7 @@ public class Main {
 
         dbManager.openConnection(getProperties());
 
-        dbManager.addNewReading(reading1);
+
 
         dbManager.closeConnection();
 
