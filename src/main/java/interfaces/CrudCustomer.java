@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public class CrudCustomer extends DatabaseConnection{
+public class CrudCustomer {
 
     public void addNewCustomer(Costumer customer) {
         String query = "INSERT INTO customer (id, first_name, last_name, birth_date, gender) VALUES (?, ?, ?, ?, ?)";
