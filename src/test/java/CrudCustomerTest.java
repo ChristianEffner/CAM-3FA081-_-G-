@@ -29,7 +29,6 @@ public class CrudCustomerTest {
         mockConnection = Mockito.mock(Connection.class);
         mockPreparedStatement = Mockito.mock(PreparedStatement.class);
         mockResultSet = Mockito.mock(ResultSet.class);
-
         crudCustomer = new CrudCustomer();
         // Set the mock connection to the DatabaseConnection singleton
         DatabaseConnection.getInstance().connection = mockConnection;
