@@ -11,7 +11,8 @@ public class DatabaseConnection implements IDatabaseConnection {
     IDatabaseConnection dbConnection;
     private static DatabaseConnection INSTANCE;
 
-    private DatabaseConnection() {
+    public DatabaseConnection() {
+
     }
 
 

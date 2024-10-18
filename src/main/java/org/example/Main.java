@@ -10,22 +10,28 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.Properties;
 import java.util.UUID;
+import interfaces.CrudCustomer;
+import interfaces.CrudReading;
 
 public class Main {
+
     public static void main(String[] args) {
 
-        UUID customerId = UUID.fromString("5e18f47a-ffbb-4813-a813-b36be211c114");
+        UUID customerId = UUID.fromString("5e842183-ea5a-4d66-b3ee-9cc3c166e101");
 
-        UUID readingId = UUID.fromString("7dd46fb0-b8e6-472f-8034-762b987d7f5a");
+        UUID readingId = UUID.fromString("df769321-3343-48f3-a889-bdf537fac2c1");
 
-        Costumer costumer1 = new Costumer(customerId, "Christian", "E.", LocalDate.of(1999, 1, 19), Gender.M);
-        Reading reading1 = new Reading(readingId, "this is a test", costumer1, LocalDate.of(2005, 1, 1), KindOfMeter.HEIZUNG, 18.0, "test1", Boolean.FALSE);
+        Costumer costumer1 = new Costumer(customerId, "ch", "C.", LocalDate.of(2000, 1, 1), Gender.M);
+
+        Reading reading1 = new Reading(readingId, "this is not a test", costumer1, LocalDate.of(2007, 1, 4), KindOfMeter.STROM, 20.0, "test1", Boolean.TRUE);
 
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
+        CrudCustomer crudCustomer = new CrudCustomer();
+        CrudReading crudReading = new CrudReading();
 
         dbManager.openConnection(getProperties());
 
-
+        crudReading.readReading(readingId);
 
         dbManager.closeConnection();
 

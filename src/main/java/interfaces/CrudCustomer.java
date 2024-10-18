@@ -1,7 +1,5 @@
 package interfaces;
-
 import enums.Gender;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -59,6 +57,7 @@ public class CrudCustomer {
 
     public void updateCustomerById(Costumer costumer) {
         String updateCustomerSQL = "UPDATE Customer SET first_name = ?, last_name = ?, birth_date = ?, gender = ? WHERE id = ?;";
+        Connection connection = DatabaseConnection.getInstance().connection;
 
         try (var preparedStatement = connection.prepareStatement(updateCustomerSQL)) {
             preparedStatement.setString(1, costumer.getFirstName());
@@ -82,7 +81,7 @@ public class CrudCustomer {
 
     public Costumer deleteCustomerById(UUID customerId) {
         String deleteCustomerSQL = "DELETE FROM Customer WHERE id = ?;";
-        Connection connection1 = DatabaseConnection.getInstance().connection;
+        Connection connection = DatabaseConnection.getInstance().connection;
 
         try ( PreparedStatement statement= connection.prepareStatement(deleteCustomerSQL)) {
             statement.setObject(1, customerId);
