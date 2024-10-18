@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class DatabaseConnection implements IDatabaseConnection {
 
-    Connection connection;
+    public Connection connection;
     IDatabaseConnection dbConnection;
     private static DatabaseConnection INSTANCE;
 
