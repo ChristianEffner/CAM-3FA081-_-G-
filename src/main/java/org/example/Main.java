@@ -2,6 +2,7 @@ package org.example;
 import enums.Gender;
 import enums.KindOfMeter;
 import interfaces.Costumer;
+import interfaces.CrudCustomer;
 import interfaces.DatabaseConnection;
 import interfaces.Reading;
 import java.io.FileInputStream;
@@ -18,6 +19,7 @@ public class Main {
 
         UUID readingId = UUID.fromString("7dd46fb0-b8e6-472f-8034-762b987d7f5a");
 
+        CrudCustomer crudcustomer = new CrudCustomer();
         Costumer costumer1 = new Costumer(customerId, "Christian", "E.", LocalDate.of(1999, 1, 19), Gender.M);
         Reading reading1 = new Reading(readingId, "this is a test", costumer1, LocalDate.of(2005, 1, 1), KindOfMeter.HEIZUNG, 18.0, "test1", Boolean.FALSE);
 
@@ -25,6 +27,7 @@ public class Main {
 
         dbManager.openConnection(getProperties());
 
+        crudcustomer.addNewCustomer(costumer1);
 
 
         dbManager.closeConnection();
