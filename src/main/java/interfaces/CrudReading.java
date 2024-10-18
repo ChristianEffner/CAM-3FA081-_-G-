@@ -7,7 +7,6 @@ import java.util.UUID;
 
 public class CrudReading extends DatabaseConnection {
 
-    // Create an instance of CrudCustomer to use its methods
     private CrudCustomer crudCustomer = new CrudCustomer();
 
     public void addNewReading(Reading reading) {
@@ -16,7 +15,7 @@ public class CrudReading extends DatabaseConnection {
 
         try {
             UUID customerId = reading.getCustomer().getId();
-            Costumer existingCustomer = crudCustomer.readCustomer(customerId);  // Use CrudCustomer to read the customer
+            Costumer existingCustomer = crudCustomer.readCustomer(customerId);
 
             if (existingCustomer == null) {
                 ICustomer iCustomer = reading.getCustomer();
@@ -25,7 +24,7 @@ public class CrudReading extends DatabaseConnection {
                 if (iCustomer instanceof Costumer) {
                     Costumer newCustomer = (Costumer) iCustomer;
 
-                    crudCustomer.addNewCustomer(newCustomer);  // Use CrudCustomer to add the new customer
+                    crudCustomer.addNewCustomer(newCustomer);
                 }
             }
 
@@ -34,14 +33,13 @@ public class CrudReading extends DatabaseConnection {
                 // Set the parameters for the query
                 preparedStatement.setString(1, reading.getId().toString());
                 preparedStatement.setString(2, reading.getComment());
-                preparedStatement.setString(3, reading.getCustomer().getId().toString()); // Customer ID should now exist
+                preparedStatement.setString(3, reading.getCustomer().getId().toString());
                 preparedStatement.setDate(4, java.sql.Date.valueOf(reading.getDateOfReading())); // assuming it's a LocalDate
                 preparedStatement.setString(5, reading.getKindOfMeter().toString());
                 preparedStatement.setDouble(6, reading.getMeterCount()); // setDouble for DOUBLE value
                 preparedStatement.setString(7, reading.getMeterId());
                 preparedStatement.setBoolean(8, reading.getSubstitute());
 
-                // Execute the SQL query
                 preparedStatement.executeUpdate();
                 System.out.println("Record successfully inserted!");
 
@@ -53,7 +51,6 @@ public class CrudReading extends DatabaseConnection {
         }
     }
 
-    // Other methods remain the same
     public Reading readReading(UUID id) {
         String selectReading = "SELECT * FROM reading WHERE id = ?;";
         Connection connection = DatabaseConnection.getInstance().connection;
@@ -71,8 +68,6 @@ public class CrudReading extends DatabaseConnection {
                 String meter_id = resultSet.getString("meter_id");
                 String substitute = resultSet.getString("substitute");
 
-                // You would return a new Reading object here based on the resultSet data
-                // But since your code returns null, I'm keeping it the same
             }
 
         } catch (SQLException e) {
@@ -83,7 +78,7 @@ public class CrudReading extends DatabaseConnection {
 
     public Reading deleteReadingById(UUID readingId) {
         String deleteReadingSQL = "DELETE FROM Reading WHERE id = ?;";
-        Connection connection1 = DatabaseConnection.getInstance().connection;
+        Connection connection = DatabaseConnection.getInstance().connection;
 
         try (PreparedStatement statement= connection.prepareStatement(deleteReadingSQL)) {
             statement.setObject(1, readingId);
@@ -102,11 +97,13 @@ public class CrudReading extends DatabaseConnection {
     }
 
     public void updateReadingById(Reading reading) {
-        String updateReadingSQL = "UPDATE Reading SET comment = ?, date_of_reading = ?, kind_of_meter = ?, meter_count = ?, meter_id = ?, substitute = ? WHERE id = ?;";
+        String updateReadingSQL = "UPDATE Reading SET comment = ?, customer_id = ?, date_of_reading = ?, kind_of_meter = ?, meter_count = ?, meter_id = ?, substitute = ? WHERE id = ?;";
+        Connection connection = DatabaseConnection.getInstance().connection;
 
         try (var preparedStatement = connection.prepareStatement(updateReadingSQL)) {
+
             preparedStatement.setString(1, reading.getComment());
-            preparedStatement.setObject(2, reading.getCustomer());
+            preparedStatement.setString(2, reading.getCustomer().getId().toString());
             preparedStatement.setDate(3, java.sql.Date.valueOf(reading.getDateOfReading()));
             preparedStatement.setString(4, reading.getKindOfMeter().toString());
             preparedStatement.setDouble(5, reading.getMeterCount());
@@ -125,4 +122,5 @@ public class CrudReading extends DatabaseConnection {
             e.printStackTrace();
         }
     }
+
 }

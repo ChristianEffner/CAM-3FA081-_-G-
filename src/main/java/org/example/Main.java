@@ -1,9 +1,8 @@
 package org.example;
 import enums.Gender;
 import enums.KindOfMeter;
-import interfaces.Costumer;
-import interfaces.DatabaseConnection;
-import interfaces.Reading;
+import interfaces.*;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,21 +13,27 @@ import java.util.UUID;
 public class Main {
     public static void main(String[] args) {
 
-        UUID customerId = UUID.fromString("5e18f47a-ffbb-4813-a813-b36be211c114");
-
+        UUID customerId = UUID.fromString("43847338-8a5d-44f4-9477-e4789831899f");
         UUID readingId = UUID.fromString("7dd46fb0-b8e6-472f-8034-762b987d7f5a");
 
-        Costumer costumer1 = new Costumer(customerId, "Christian", "E.", LocalDate.of(1999, 1, 19), Gender.M);
-        Reading reading1 = new Reading(readingId, "this is a test", costumer1, LocalDate.of(2005, 1, 1), KindOfMeter.HEIZUNG, 18.0, "test1", Boolean.FALSE);
+        // Create a customer and a reading
+        Costumer costumer1 = new Costumer(customerId, "A", "o.", LocalDate.of(1999, 1, 19), Gender.M);
+        Reading reading1 = new Reading(readingId, "hallo", costumer1, LocalDate.of(2005, 1, 1), KindOfMeter.HEIZUNG, 18.0, "test1", Boolean.FALSE);
 
+        // Get the database connection instance
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
+        // Create a new CrudCustomer instance
+        CrudCustomer crudCustomerManager = new CrudCustomer();
+        CrudReading crudReadingManager = new CrudReading();
 
+        // Open the database connection using properties from the config file
         dbManager.openConnection(getProperties());
 
+        // Add the new customer to the database
+        crudReadingManager.deleteReadingById(readingId);
 
-
+        // Close the database connection
         dbManager.closeConnection();
-
     }
 
     public static Properties getProperties() {
