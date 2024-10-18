@@ -1,40 +1,39 @@
 package org.example;
 import enums.Gender;
 import enums.KindOfMeter;
-import interfaces.Costumer;
-import interfaces.DatabaseConnection;
-import interfaces.Reading;
+import interfaces.*;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.Properties;
 import java.util.UUID;
-import interfaces.CrudCustomer;
-import interfaces.CrudReading;
 
 public class Main {
-
     public static void main(String[] args) {
 
-        UUID customerId = UUID.fromString("5e842183-ea5a-4d66-b3ee-9cc3c166e101");
+        UUID customerId = UUID.fromString("43847338-8a5d-44f4-9477-e4789831899f");
+        UUID readingId = UUID.fromString("7dd46fb0-b8e6-472f-8034-762b987d7f5a");
 
-        UUID readingId = UUID.fromString("df769321-3343-48f3-a889-bdf537fac2c1");
+        // Create a customer and a reading
+        Costumer costumer1 = new Costumer(customerId, "A", "o.", LocalDate.of(1999, 1, 19), Gender.M);
+        Reading reading1 = new Reading(readingId, "hallo", costumer1, LocalDate.of(2005, 1, 1), KindOfMeter.HEIZUNG, 18.0, "test1", Boolean.FALSE);
 
-        Costumer costumer1 = new Costumer(customerId, "ch", "C.", LocalDate.of(2000, 1, 1), Gender.M);
-
-        Reading reading1 = new Reading(readingId, "this is not a test", costumer1, LocalDate.of(2007, 1, 4), KindOfMeter.STROM, 20.0, "test1", Boolean.TRUE);
-
+        // Get the database connection instance
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
-        CrudCustomer crudCustomer = new CrudCustomer();
-        CrudReading crudReading = new CrudReading();
+        // Create a new CrudCustomer instance
+        CrudCustomer crudCustomerManager = new CrudCustomer();
+        CrudReading crudReadingManager = new CrudReading();
 
+        // Open the database connection using properties from the config file
         dbManager.openConnection(getProperties());
 
-        crudReading.readReading(readingId);
+        // Add the new customer to the database
+        crudReadingManager.deleteReadingById(readingId);
 
+        // Close the database connection
         dbManager.closeConnection();
-
     }
 
     public static Properties getProperties() {

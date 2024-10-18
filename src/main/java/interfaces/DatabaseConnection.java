@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class DatabaseConnection implements IDatabaseConnection {
 
-    Connection connection;
+    public Connection connection;
     IDatabaseConnection dbConnection;
     private static DatabaseConnection INSTANCE;
 
@@ -78,27 +78,27 @@ public class DatabaseConnection implements IDatabaseConnection {
 
     @Override
     public void truncateAllTables() {
-        String truncateCustomerTableSQL = "TRUNCATE TABLE Customer;";
-        String truncateReadingTableSQL = "TRUNCATE TABLE Reading;";
-
         try (Statement statement = connection.createStatement()) {
 
-            statement.executeUpdate("SET FOREIGN_KEY_CHECKS = 0;");
+            // Prüfe, ob die Datenbank MySQL/MariaDB ist, um TRUNCATE zu verwenden
+            if (!connection.getMetaData().getDatabaseProductName().equalsIgnoreCase("H2")) {
+                statement.executeUpdate("SET FOREIGN_KEY_CHECKS = 0;");
+                statement.executeUpdate("TRUNCATE TABLE READING;");
+                statement.executeUpdate("TRUNCATE TABLE CUSTOMER;");
+                statement.executeUpdate("SET FOREIGN_KEY_CHECKS = 1;");
+            } else {
+                // Verwende DELETE für H2-Datenbank
+                statement.executeUpdate("DELETE FROM READING;");
+                statement.executeUpdate("DELETE FROM CUSTOMER;");
+            }
 
-            statement.executeUpdate(truncateReadingTableSQL);
-            System.out.println("Reading table truncated successfully.");
-
-            statement.executeUpdate(truncateCustomerTableSQL);
-            System.out.println("Customer table truncated successfully.");
-
-            statement.executeUpdate("SET FOREIGN_KEY_CHECKS = 1;");
-
+            System.out.println("Tables truncated successfully.");
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
+
 
     @Override
     public void removeAllTables() {
@@ -123,6 +123,7 @@ public class DatabaseConnection implements IDatabaseConnection {
         if (connection != null) {
             try {
                 connection.close();
+                connection = null;
                 System.out.println("Connection closed successfully");
             } catch (SQLException e) {
                 System.err.println("Error while closing the connection: " + e.getMessage());
