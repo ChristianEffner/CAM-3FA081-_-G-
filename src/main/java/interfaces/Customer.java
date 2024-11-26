@@ -3,7 +3,7 @@ import enums.Gender;
 import java.time.LocalDate;
 import java.util.UUID;
 
-public class Costumer implements ICustomer {
+public class Customer implements ICustomer {
 
     private UUID id;
     private String firstName;
@@ -11,7 +11,8 @@ public class Costumer implements ICustomer {
     private LocalDate birthday;
     private Gender gender;
 
-    public Costumer(UUID id, String firstName, String lastName,LocalDate birthday, Gender gender) {
+    public Customer(UUID id, String firstName, String lastName, LocalDate birthday, Gender gender) {
+
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;

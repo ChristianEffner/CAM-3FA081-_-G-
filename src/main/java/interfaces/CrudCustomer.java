@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class CrudCustomer {
 
-    public void addNewCustomer(Costumer customer) {
+    public void addNewCustomer(Customer customer) {
         String query = "INSERT INTO customer (id, first_name, last_name, birth_date, gender) VALUES (?, ?, ?, ?, ?)";
         Connection connection = DatabaseConnection.getInstance().connection;
 
@@ -18,7 +18,8 @@ public class CrudCustomer {
             preparedStatement.setString(1, customer.getId().toString());
             preparedStatement.setString(2, customer.getFirstName());
             preparedStatement.setString(3, customer.getLastName());
-            preparedStatement.setString(4, customer.getBirthDate().toString());
+        //    preparedStatement.setString(4, customer.getBirthDate().toString());
+            preparedStatement.setDate(4, java.sql.Date.valueOf(customer.getBirthDate()));
             preparedStatement.setString(5, customer.getGender().toString());
 
             preparedStatement.executeUpdate();
@@ -29,7 +30,7 @@ public class CrudCustomer {
     }
 
 
-    public Costumer readCustomer(UUID id) {
+    public Customer readCustomer(UUID id) {
 
         String selectCustomer = "SELECT * FROM customer WHERE id = ?;";
         Connection connection = DatabaseConnection.getInstance().connection;
@@ -44,7 +45,7 @@ public class CrudCustomer {
                 LocalDate z = resultSet.getDate("birth_date").toLocalDate();
                 Gender gender = Gender.valueOf(resultSet.getString("gender"));
 
-                return new Costumer(id, x, y, z, gender);
+                return new Customer(id, x, y, z, gender);
 
             }
         } catch (SQLException e) {
@@ -55,22 +56,22 @@ public class CrudCustomer {
     }
 
 
-    public void updateCustomerById(Costumer costumer) {
+    public void updateCustomerById(Customer customer) {
         String updateCustomerSQL = "UPDATE Customer SET first_name = ?, last_name = ?, birth_date = ?, gender = ? WHERE id = ?;";
         Connection connection = DatabaseConnection.getInstance().connection;
 
         try (var preparedStatement = connection.prepareStatement(updateCustomerSQL)) {
-            preparedStatement.setString(1, costumer.getFirstName());
-            preparedStatement.setString(2, costumer.getLastName());
-            preparedStatement.setDate(3, java.sql.Date.valueOf(costumer.getBirthDate()));
-            preparedStatement.setString(4, costumer.getGender().toString());
-            preparedStatement.setString(5, costumer.getId().toString());
+            preparedStatement.setString(1, customer.getFirstName());
+            preparedStatement.setString(2, customer.getLastName());
+            preparedStatement.setDate(3, java.sql.Date.valueOf(customer.getBirthDate()));
+            preparedStatement.setString(4, customer.getGender().toString());
+            preparedStatement.setString(5, customer.getId().toString());
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("Customer with ID " + costumer.getId() + " was updated successfully.");
+                System.out.println("Customer with ID " + customer.getId() + " was updated successfully.");
             } else {
-                System.out.println("No customer found with ID " + costumer.getId());
+                System.out.println("No customer found with ID " + customer.getId());
             }
 
         } catch (SQLException e) {
@@ -79,7 +80,7 @@ public class CrudCustomer {
     }
 
 
-    public Costumer deleteCustomerById(UUID customerId) {
+    public Customer deleteCustomerById(UUID customerId) {
         String deleteCustomerSQL = "DELETE FROM Customer WHERE id = ?;";
         Connection connection = DatabaseConnection.getInstance().connection;
 

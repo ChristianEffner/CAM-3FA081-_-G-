@@ -16,14 +16,14 @@ public class CrudReading extends DatabaseConnection {
 
         try {
             UUID customerId = reading.getCustomer().getId();
-            Costumer existingCustomer = crudCustomer.readCustomer(customerId);
+            Customer existingCustomer = crudCustomer.readCustomer(customerId);
 
             if (existingCustomer == null) {
                 ICustomer iCustomer = reading.getCustomer();
 
                 // Cast to Costumer, if possible
-                if (iCustomer instanceof Costumer) {
-                    Costumer newCustomer = (Costumer) iCustomer;
+                if (iCustomer instanceof Customer) {
+                    Customer newCustomer = (Customer) iCustomer;
 
                     crudCustomer.addNewCustomer(newCustomer);
                 }

@@ -14,7 +14,7 @@ public class Reading implements IReading{
     private String meterID;
     private Boolean substitude;
 
-    public Reading(UUID id, String comment, Costumer customer, LocalDate dateOfReading, KindOfMeter kindOfMeter, Double meterCount, String meterID, Boolean substitude) {
+    public Reading(UUID id, String comment, Customer customer, LocalDate dateOfReading, KindOfMeter kindOfMeter, Double meterCount, String meterID, Boolean substitude) {
 
         this.id = id;
         this.comment = comment;
