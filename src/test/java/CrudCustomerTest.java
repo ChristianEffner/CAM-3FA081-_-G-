@@ -1,11 +1,10 @@
-import interfaces.Costumer;
+import interfaces.Customer;
 import interfaces.DatabaseConnection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import enums.Gender;
 import interfaces.CrudCustomer;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -37,7 +36,7 @@ public class CrudCustomerTest {
     @Test
     public void testAddNewCustomer() throws SQLException {
         // Arrange
-        Costumer customer = new Costumer(UUID.randomUUID(), "John", "Doe", LocalDate.of(1980, 5, 20), Gender.M);
+        Customer customer = new Customer(UUID.randomUUID(), "John", "Doe", LocalDate.of(1980, 5, 20), Gender.M);
 
         // Mock the prepared statement execution
         when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
@@ -67,7 +66,7 @@ public class CrudCustomerTest {
         when(mockResultSet.getString("gender")).thenReturn("M");
 
         // Act
-        Costumer customer = crudCustomer.readCustomer(customerId);
+        Customer customer = crudCustomer.readCustomer(customerId);
 
         // Assert
         assertNotNull(customer);
@@ -80,7 +79,7 @@ public class CrudCustomerTest {
     @Test
     public void testUpdateCustomerById() throws SQLException {
         // Arrange
-        Costumer customer = new Costumer(UUID.randomUUID(), "Jane", "Doe", LocalDate.of(1990, 8, 15), Gender.M);
+        Customer customer = new Customer(UUID.randomUUID(), "Jane", "Doe", LocalDate.of(1990, 8, 15), Gender.M);
 
         when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
         when(mockPreparedStatement.executeUpdate()).thenReturn(1); // Mock 1 row affected
