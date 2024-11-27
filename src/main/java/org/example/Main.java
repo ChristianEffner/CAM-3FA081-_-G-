@@ -24,13 +24,8 @@ public class Main {
         CrudReading crudReadingManager = new CrudReading();
         Server restServer = new Server();
 
-
-        dbManager.openConnection(getProperties());
-
-
-
-
-        dbManager.closeConnection();
+        restServer.startRestServer();
+        restServer.stopServer();
     }
 
     public static Properties getProperties() {
