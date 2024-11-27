@@ -1,12 +1,12 @@
-import enums.Gender;
-import interfaces.Customer;
-import interfaces.DatabaseConnection;
-import interfaces.Reading;
+import hausfix.CRUD.CrudReading;
+import hausfix.SQL.DatabaseConnection;
+import hausfix.entities.Customer;
+import hausfix.entities.Reading;
+import hausfix.enums.Gender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import enums.KindOfMeter;
-import interfaces.CrudReading;
+import hausfix.enums.KindOfMeter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,6 +14,9 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import org.mockito.MockitoAnnotations;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class CrudReadingTest {
@@ -22,7 +25,6 @@ public class CrudReadingTest {
     private Connection mockConnection;
     private PreparedStatement mockPreparedStatement;
     private ResultSet mockResultSet;
-    private CrudCustomer mockCrudCustomer;
 
     @BeforeEach
     public void setUp() throws SQLException {
@@ -31,6 +33,8 @@ public class CrudReadingTest {
         mockPreparedStatement = Mockito.mock(PreparedStatement.class);
         mockResultSet = Mockito.mock(ResultSet.class);
         crudReading = new CrudReading();
+        MockitoAnnotations.openMocks(this);
+        when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
 
         // Set the mock connection to the DatabaseConnection singleton
         DatabaseConnection.getInstance().connection = mockConnection;
@@ -73,41 +77,46 @@ public class CrudReadingTest {
         verify(mockPreparedStatement, times(1)).setObject(1, readingId);
         verify(mockPreparedStatement, times(1)).executeUpdate();
     }
-/*
-    @Test
-    void testAddNewReading() throws Exception {
-        // Arrange
-        UUID customerId = UUID.randomUUID();
-        Customer mockCustomer = mock(Customer.class);
-        when(mockCustomer.getId()).thenReturn(customerId);
-        when(mockCrudCustomer.readCustomer(customerId)).thenReturn(null);
 
-        Reading mockReading = mock(Reading.class);
-        when(mockReading.getId()).thenReturn(UUID.randomUUID());
-        when(mockReading.getComment()).thenReturn("Test Comment");
-        when(mockReading.getCustomer()).thenReturn(mockCustomer);
-        when(mockReading.getDateOfReading()).thenReturn(LocalDate.of(2024, 11, 25));
-        when(mockReading.getKindOfMeter()).thenReturn(KindOfMeter.HEIZUNG); // Beispielwert
-        when(mockReading.getMeterCount()).thenReturn(123.45);
-        when(mockReading.getMeterId()).thenReturn("Meter-123");
-        when(mockReading.getSubstitute()).thenReturn(false);
+
+    @Test
+    public void testReadReading() throws SQLException {
+        // Arrange
+        UUID readingId = UUID.randomUUID();
+        String comment = "Test comment";
+        String cust_id = UUID.randomUUID().toString();
+        String date_of_reading = LocalDate.now().toString();
+        String kind_of_meter = "WASSER";
+        String meter_count = "200.0";
+        String meter_id = "meter123";
+        String substitute = "false";
+
+        // Mocking the ResultSet to return specific values
+        when(mockResultSet.next()).thenReturn(true);
+        when(mockResultSet.getString("comment")).thenReturn(comment);
+        when(mockResultSet.getString("customer_id")).thenReturn(cust_id);
+        when(mockResultSet.getString("date_of_reading")).thenReturn(date_of_reading);
+        when(mockResultSet.getString("kind_of_meter")).thenReturn(kind_of_meter);
+        when(mockResultSet.getString("meter_count")).thenReturn(meter_count);
+        when(mockResultSet.getString("meter_id")).thenReturn(meter_id);
+        when(mockResultSet.getString("substitute")).thenReturn(substitute);
+
+        // Mocking the statement to return the prepared result set
+        when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
+        when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
 
         // Act
-        crudReading.addNewReading(mockReading);
+        Reading result = crudReading.readReading(readingId);
 
         // Assert
-        verify(mockConnection, times(1)).prepareStatement(anyString());
-        verify(mockPreparedStatement, times(1)).setString(1, mockReading.getId().toString());
-        verify(mockPreparedStatement, times(1)).setString(2, "Test Comment");
-        verify(mockPreparedStatement, times(1)).setString(3, customerId.toString());
-        verify(mockPreparedStatement, times(1)).setDate(4, java.sql.Date.valueOf(LocalDate.of(2024, 11, 25)));
-        verify(mockPreparedStatement, times(1)).setString(5, KindOfMeter.HEIZUNG.toString());
-        verify(mockPreparedStatement, times(1)).setDouble(6, 123.45);
-        verify(mockPreparedStatement, times(1)).setString(7, "Meter-123");
-        verify(mockPreparedStatement, times(1)).setBoolean(8, false);
-        verify(mockPreparedStatement, times(1)).executeUpdate();
+        assertNotNull(result);  // Assert that the result is not null
+        assertEquals(comment, result.getComment());
+        assertEquals(readingId, result.getId());
+        assertEquals(kind_of_meter, result.getKindOfMeter().name());
     }
 
- */
 }
+
+
+
 

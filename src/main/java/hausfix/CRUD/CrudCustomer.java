@@ -1,5 +1,8 @@
-package interfaces;
-import enums.Gender;
+package hausfix.CRUD;
+import hausfix.entities.Customer;
+import hausfix.enums.Gender;
+import hausfix.SQL.DatabaseConnection;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

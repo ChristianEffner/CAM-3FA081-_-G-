@@ -1,9 +1,12 @@
-package interfaces;
-import enums.KindOfMeter;
+package hausfix.entities;
+import hausfix.enums.KindOfMeter;
+import hausfix.interfaces.ICustomer;
+import hausfix.interfaces.IReading;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
-public class Reading implements IReading{
+public class Reading implements IReading {
 
     private UUID id;
     private String comment;

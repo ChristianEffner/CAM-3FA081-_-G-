@@ -1,6 +1,10 @@
-package interfaces;
-import enums.Gender;
-import enums.KindOfMeter;
+package hausfix.CRUD;
+import hausfix.entities.Customer;
+import hausfix.entities.Reading;
+import hausfix.enums.Gender;
+import hausfix.enums.KindOfMeter;
+import hausfix.SQL.DatabaseConnection;
+import hausfix.interfaces.ICustomer;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
