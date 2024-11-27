@@ -1,8 +1,12 @@
 package interfaces;
+import enums.Gender;
+import enums.KindOfMeter;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.UUID;
 
 
@@ -69,12 +73,16 @@ public class CrudReading extends DatabaseConnection {
                 String meter_id = resultSet.getString("meter_id");
                 String substitute = resultSet.getString("substitute");
 
-            }
+                // Erstelle ein neues Customer-Objekt basierend auf der cust_id
+                Customer customer = new Customer(UUID.fromString(cust_id), "John", "Doe", LocalDate.now(), Gender.M);  // Beispielwerte für Customer
 
+                // Erstelle und gebe das Reading-Objekt zurück
+                return new Reading(id, comment, customer, LocalDate.parse(date_of_reading), KindOfMeter.valueOf(kind_of_meter), Double.parseDouble(meter_count), meter_id, Boolean.parseBoolean(substitute));
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
+        return null; // Fallback, falls keine Daten gefunden werden
     }
 
     public Reading deleteReadingById(UUID readingId) {
