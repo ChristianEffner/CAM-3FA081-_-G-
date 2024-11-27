@@ -1,5 +1,5 @@
-package interfaces;
-import enums.Gender;
+package hausfix.interfaces;
+import hausfix.enums.Gender;
 import java.time.LocalDate;
 
 public interface ICustomer extends IID {

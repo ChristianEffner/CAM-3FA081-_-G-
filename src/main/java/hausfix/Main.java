@@ -1,7 +1,13 @@
-package org.example;
-import enums.Gender;
-import enums.KindOfMeter;
-import interfaces.*;
+package hausfix;
+import hausfix.CRUD.CrudCustomer;
+import hausfix.CRUD.CrudReading;
+import hausfix.SQL.DatabaseConnection;
+import hausfix.entities.Customer;
+import hausfix.entities.Reading;
+import hausfix.enums.Gender;
+import hausfix.enums.KindOfMeter;
+import hausfix.rest.Server;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;

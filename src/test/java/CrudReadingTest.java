@@ -1,17 +1,19 @@
-import enums.Gender;
-import interfaces.*;
+import hausfix.CRUD.CrudReading;
+import hausfix.SQL.DatabaseConnection;
+import hausfix.entities.Customer;
+import hausfix.entities.Reading;
+import hausfix.enums.Gender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import enums.KindOfMeter;
+import hausfix.enums.KindOfMeter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.UUID;
-import interfaces.CrudCustomer;
+
 import org.mockito.MockitoAnnotations;
 
 import static org.junit.jupiter.api.Assertions.*;

@@ -1,4 +1,4 @@
-package interfaces;
+package hausfix.interfaces;
 import java.util.UUID;
 
 public interface IID {
