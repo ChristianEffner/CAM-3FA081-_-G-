@@ -1,10 +1,10 @@
-import interfaces.Customer;
-import interfaces.DatabaseConnection;
+import hausfix.entities.Customer;
+import hausfix.SQL.DatabaseConnection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import enums.Gender;
-import interfaces.CrudCustomer;
+import hausfix.enums.Gender;
+import hausfix.CRUD.CrudCustomer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

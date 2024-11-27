@@ -1,9 +1,8 @@
-package interfaces;
-import enums.Gender;
+package hausfix.SQL;
+import hausfix.interfaces.IDatabaseConnection;
+
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.Properties;
-import java.util.UUID;
 
 public class DatabaseConnection implements IDatabaseConnection {
 

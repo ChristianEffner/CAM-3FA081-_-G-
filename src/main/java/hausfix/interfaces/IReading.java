@@ -1,5 +1,6 @@
-package interfaces;
-import enums.KindOfMeter;
+package hausfix.interfaces;
+import hausfix.enums.KindOfMeter;
+
 import java.time.LocalDate;
 
 public interface IReading extends IID{

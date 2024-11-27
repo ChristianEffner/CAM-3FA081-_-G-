@@ -1,4 +1,4 @@
-package enums;
+package hausfix.enums;
 
 public enum KindOfMeter {
     HEIZUNG,

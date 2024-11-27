@@ -1,4 +1,4 @@
-package interfaces;
+package hausfix.rest;
 import com.sun.net.httpserver.HttpServer;
 import java.net.URI;
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
@@ -9,7 +9,7 @@ public class Server {
     static HttpServer server = null;
     public static void startRestServer() {
         String url = "http://localhost:8080/";
-        final String pack = "interfaces";
+        final String pack = "hausfix/interfaces";
         System.out.println("Starting server...");
         System.out.println("URL: " + url);
         final ResourceConfig resourceConfig = new ResourceConfig().packages(pack);

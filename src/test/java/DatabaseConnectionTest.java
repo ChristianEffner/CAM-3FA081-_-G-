@@ -1,5 +1,4 @@
-import interfaces.DatabaseConnection;
-import interfaces.IDatabaseConnection;
+import hausfix.SQL.DatabaseConnection;
 import org.junit.jupiter.api.*;
 import java.sql.*;
 import java.util.Properties;
