@@ -1,12 +1,23 @@
 package interfaces;
+import com.sun.net.httpserver.HttpServer;
+import java.net.URI;
+import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
 
 public class Server {
 
-    public static void startServer(String url) {
-
+    static HttpServer server = null;
+    public static void startRestServer() {
+        String url = "http://localhost:8080/";
+        final String pack = "interfaces";
+        System.out.println("Starting server...");
+        System.out.println("URL: " + url);
+        final ResourceConfig resourceConfig = new ResourceConfig().packages(pack);
+        server = JdkHttpServerFactory.createHttpServer(URI.create(url), resourceConfig);
+        System.out.println("Ready for requests");
     }
 
     public static void stopServer() {
-
+        if (server != null) server.stop(0);
     }
 }
