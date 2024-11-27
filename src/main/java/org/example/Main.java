@@ -22,10 +22,13 @@ public class Main {
 
         CrudCustomer crudCustomerManager = new CrudCustomer();
         CrudReading crudReadingManager = new CrudReading();
+        Server restServer = new Server();
+
 
         dbManager.openConnection(getProperties());
 
-        crudCustomerManager.deleteCustomerById(customerId);
+
+
 
         dbManager.closeConnection();
     }
