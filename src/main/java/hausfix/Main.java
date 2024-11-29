@@ -31,7 +31,6 @@ public class Main {
         Server restServer = new Server();
 
         restServer.startRestServer();
-        restServer.stopServer();
     }
 
     public static Properties getProperties() {
