@@ -1,7 +1,6 @@
 package hausfix.entities;
 import hausfix.enums.Gender;
 import hausfix.interfaces.ICustomer;
-
 import java.time.LocalDate;
 import java.util.UUID;
 

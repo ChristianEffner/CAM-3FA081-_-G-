@@ -29,10 +29,8 @@ public class Main {
         CrudCustomer crudCustomerManager = new CrudCustomer();
         CrudReading crudReadingManager = new CrudReading();
         Server restServer = new Server();
+
         restServer.startRestServer();
-
-        dbManager.openConnection(getProperties());
-
     }
 
     public static Properties getProperties() {

@@ -21,4 +21,20 @@ public class Server {
         if (server != null) server.stop(0);
         System.out.println("server stoped");
     }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
