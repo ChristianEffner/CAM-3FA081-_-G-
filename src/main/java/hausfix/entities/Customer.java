@@ -1,4 +1,6 @@
 package hausfix.entities;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import hausfix.enums.Gender;
 import hausfix.interfaces.ICustomer;
 import java.time.LocalDate;
@@ -11,6 +13,9 @@ public class Customer implements ICustomer {
     private String lastName;
     private LocalDate birthday;
     private Gender gender;
+
+    public Customer() {
+    }
 
     public Customer(UUID id, String firstName, String lastName, LocalDate birthday, Gender gender) {
 
