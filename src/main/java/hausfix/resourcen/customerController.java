@@ -31,6 +31,8 @@ public class customerController {
                     .entity(customer) // Den gespeicherten Kunden mit UUID zurückgeben
                     .build();
     }
+
+
 }
 
 

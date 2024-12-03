@@ -8,6 +8,7 @@ import org.glassfish.jersey.server.ServerProperties;
 public class Server {
 
     static HttpServer server = null;
+
     public static void startRestServer() {
         String url = "http://localhost:8080/";
         final String pack = "hausfix.resourcen";
