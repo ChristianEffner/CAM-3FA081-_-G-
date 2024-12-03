@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public class CrudCustomer {
 
-    public void addNewCustomer(Customer customer) {
+    public void addNewCustomer(Customer customer) throws SQLException {
         String query = "INSERT INTO customer (id, first_name, last_name, birth_date, gender) VALUES (?, ?, ?, ?, ?)";
         Connection connection = DatabaseConnection.getInstance().connection;
 
@@ -27,8 +27,6 @@ public class CrudCustomer {
 
             preparedStatement.executeUpdate();
 
-        } catch (SQLException e) {
-            System.err.println("Fehler beim Einfügen des Datensatzes: " + e.getMessage());
         }
     }
 
