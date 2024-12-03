@@ -7,18 +7,18 @@ import hausfix.entities.Reading;
 import hausfix.enums.Gender;
 import hausfix.enums.KindOfMeter;
 import hausfix.rest.Server;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.Properties;
 import java.util.UUID;
+import hausfix.resourcen.customerController;
 
 public class Main {
     public static void main(String[] args) {
 
-        UUID customerId = UUID.fromString("d7109982-a5e3-441f-86db-a5b59ac61f13");
+        UUID customerId = UUID.randomUUID();
         UUID readingId = UUID.randomUUID();
 
         Customer customer1 = new Customer(customerId, "Christian", "Effner", LocalDate.of(1999, 1, 20), Gender.M);
@@ -30,7 +30,9 @@ public class Main {
         CrudReading crudReadingManager = new CrudReading();
         Server restServer = new Server();
 
+        dbManager.openConnection(getProperties());
         restServer.startRestServer();
+
     }
 
     public static Properties getProperties() {

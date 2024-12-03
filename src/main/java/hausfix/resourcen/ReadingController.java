@@ -1,4 +1,4 @@
-package resourcen;
+package hausfix.resourcen;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hausfix.CRUD.CrudCustomer;
