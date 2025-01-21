@@ -17,7 +17,6 @@
         <jackson.version>2.18.0</jackson.version>
     </properties>
 
-
     <dependencies>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
@@ -39,22 +38,29 @@
             <artifactId>jaxb-impl</artifactId>
             <version>2.3.0.1</version>
         </dependency>
+        <!-- MariaDB Client -->
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
             <version>3.4.1</version>
         </dependency>
+
+        <!-- SLF4J Logger -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>2.0.16</version>
         </dependency>
+
+        <!-- JUnit -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.9.3</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Mockito -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
@@ -67,12 +73,16 @@
             <version>4.11.0</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- H2 Database (Test Scope) -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <version>2.2.220</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Jersey Dependencies -->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-jdk-http</artifactId>
@@ -88,6 +98,8 @@
             <artifactId>jersey-media-json-jackson</artifactId>
             <version>${jersey.version}</version>
         </dependency>
+
+        <!-- Jackson for JSON -->
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
