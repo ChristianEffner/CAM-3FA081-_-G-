@@ -1,8 +1,8 @@
 package hausfix.entities;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import hausfix.enums.KindOfMeter;
 import hausfix.interfaces.ICustomer;
 import hausfix.interfaces.IReading;
-
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -10,7 +10,10 @@ public class Reading implements IReading {
 
     private UUID id;
     private String comment;
+
+    @JsonDeserialize(as = Customer.class)
     private ICustomer customer;
+
     private LocalDate dateOfReading;
     private KindOfMeter kindOfMeter;
     private Double meterCount;
@@ -29,7 +32,9 @@ public class Reading implements IReading {
         this.substitude = substitude;
     }
 
-
+    public Reading() {
+        // Standardkonstruktor, der erforderlich ist, um Jackson zu ermöglichen, das Objekt zu erstellen
+    }
 
     @Override
     public void setComment(String comment) {

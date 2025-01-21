@@ -21,7 +21,9 @@ public class Customer implements ICustomer {
         this.gender = gender;
     }
 
-
+    public Customer() {
+        // Standardkonstruktor, der erforderlich ist, um Jackson zu ermöglichen, das Objekt zu erstellen
+    }
 
     @Override
     public void setFirstName(String firstName) {

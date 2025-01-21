@@ -3,15 +3,17 @@ import hausfix.entities.Customer;
 import hausfix.entities.Reading;
 import hausfix.enums.Gender;
 import hausfix.enums.KindOfMeter;
-import hausfix.SQL.DatabaseConnection;
+import hausfix.Database.DatabaseConnection;
 import hausfix.interfaces.ICustomer;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
 
 
 public class CrudReading extends DatabaseConnection {
@@ -60,7 +62,7 @@ public class CrudReading extends DatabaseConnection {
         }
     }
 
-    public Reading readReading(UUID id) {
+    public static Reading readReading(UUID id) {
         String selectReading = "SELECT * FROM reading WHERE id = ?;";
         Connection connection = DatabaseConnection.getInstance().connection;
 
@@ -135,5 +137,110 @@ public class CrudReading extends DatabaseConnection {
             e.printStackTrace();
         }
     }
+
+    /*
+    public static List<Reading> getReadings(UUID id, LocalDate startDate, LocalDate endDate, KindOfMeter kindOfMeter)
+            throws SQLException {
+        Connection connection = DatabaseConnection.getInstance().connection;
+        List<UUID> uuids = new ArrayList<>();
+
+        StringBuilder query = new StringBuilder("SELECT UUID FROM Readings");
+
+        List<Object> parameters = new ArrayList<>();
+        List<String> conditions = new ArrayList<>();
+        if (id != null) {
+            conditions.add("CustomerID = ?");
+            parameters.add(id);
+        }
+        if (startDate != null) {
+            conditions.add("DateOfReading >= ?");
+            parameters.add(startDate);
+        }
+        if (endDate != null) {
+            conditions.add("DateOfReading <= ?");
+            parameters.add(endDate);
+        }
+        if (kindOfMeter != null) {
+            conditions.add("KindOfMeter = ?");
+            parameters.add(kindOfMeter);
+        }
+
+        if (!conditions.isEmpty()) {
+            query.append(" WHERE ").append(String.join(" AND ", conditions));
+        }
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query.toString())) {
+
+            for (int i = 1; i <= parameters.size(); i++) {
+                preparedStatement.setObject(i, parameters.get(i));
+            }
+
+            ResultSet rs = preparedStatement.executeQuery();
+            while (rs.next()) {
+                uuids.add(UUID.fromString(rs.getString("ID")));
+            }
+        }
+
+        List<Reading> readings = new ArrayList<>();
+        for (UUID uuid : uuids) {
+            readings.add(CrudReading.readReading(uuid));
+        }
+
+        return readings;
+    }
+     */
+
+    public static List<Reading> getReadings(UUID id, LocalDate startDate, LocalDate endDate, KindOfMeter kindOfMeter)
+            throws SQLException {
+        Connection connection = DatabaseConnection.getInstance().connection;
+        List<UUID> uuids = new ArrayList<>();
+
+        StringBuilder query = new StringBuilder("SELECT id FROM reading");
+
+        List<Object> parameters = new ArrayList<>();
+        List<String> conditions = new ArrayList<>();
+        if (id != null) {
+            conditions.add("customer_id = ?");
+            parameters.add(id);
+        }
+        if (startDate != null) {
+            conditions.add("date_of_reading >= ?");
+            parameters.add(startDate);
+        }
+        if (endDate != null) {
+            conditions.add("date_of_reading <= ?");
+            parameters.add(endDate);
+        }
+        if (kindOfMeter != null) {
+            conditions.add("kind_of_meter = ?");
+            parameters.add(kindOfMeter.name()); // Enum als String
+        }
+
+        if (!conditions.isEmpty()) {
+            query.append(" WHERE ").append(String.join(" AND ", conditions));
+        }
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query.toString())) {
+
+            for (int i = 0; i < parameters.size(); i++) {
+                preparedStatement.setObject(i + 1, parameters.get(i));
+            }
+
+            ResultSet rs = preparedStatement.executeQuery();
+            while (rs.next()) {
+                uuids.add(UUID.fromString(rs.getString("UUID"))); // Korrigieren des Spaltennamens
+            }
+        }
+
+        List<Reading> readings = new ArrayList<>();
+        for (UUID uuid : uuids) {
+            readings.add(CrudReading.readReading(uuid));
+        }
+
+        return readings;
+    }
+
+
+
 
 }

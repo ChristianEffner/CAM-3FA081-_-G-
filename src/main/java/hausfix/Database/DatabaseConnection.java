@@ -1,4 +1,4 @@
-package hausfix.SQL;
+package hausfix.Database;
 import hausfix.interfaces.IDatabaseConnection;
 
 import java.sql.*;
@@ -42,6 +42,7 @@ public class DatabaseConnection implements IDatabaseConnection {
 
     @Override
     public void createAllTables() {
+        Connection connection = DatabaseConnection.getInstance().connection;
 
         String createCustomerTableSQL = "CREATE TABLE IF NOT EXISTS Customer (" +
                 "id UUID PRIMARY KEY," +
@@ -103,6 +104,7 @@ public class DatabaseConnection implements IDatabaseConnection {
     public void removeAllTables() {
         String dropCustomerTableSQL = "DROP TABLE IF EXISTS customer;";
         String dropReadingTableSQL = "DROP TABLE IF EXISTS reading;";
+        Connection connection = DatabaseConnection.getInstance().connection;
 
         try (Statement statement = connection.createStatement()) {
 
