@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import hausfix.CRUD.CrudCustomer;
 import hausfix.CRUD.CrudReading;
 import hausfix.entities.Customer;
@@ -57,6 +59,50 @@ public class readings {
         return Response.ok(reading).build();
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAllReadings(
+            @QueryParam("customer") UUID customer,
+            @QueryParam("start") String startDate,
+            @QueryParam("end") String endDate,
+            @QueryParam("kindOfMeter") String kindOfMeterString) {
+
+        CrudReading readingCrud = new CrudReading();
+
+        // Standardwerte setzen, falls keine Daten angegeben sind
+        LocalDate start = (startDate != null) ? LocalDate.parse(startDate) : LocalDate.MIN;
+        LocalDate end = (endDate != null) ? LocalDate.parse(endDate) : LocalDate.now();
+
+        KindOfMeter kindOfMeter = null;
+        if (kindOfMeterString != null) {
+            try {
+                kindOfMeter = KindOfMeter.valueOf(kindOfMeterString.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("Invalid kindOfMeter value. Please provide a valid value.")
+                        .build();
+            }
+        }
+
+        // Validierung: Startdatum darf nicht nach dem Enddatum liegen
+        if (start.isAfter(end)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Start date cannot be after end date.")
+                    .build();
+        }
+
+        // Readings abrufen und nach den Filtern filtern
+        List<Reading> allReadings = readingCrud.readAllReading();
+        KindOfMeter finalKindOfMeter = kindOfMeter;
+        List<Reading> filteredReadings = allReadings.stream()
+                .filter(r -> (customer == null || r.getCustomer().getId().equals(customer)))
+                .filter(r -> !r.getDateOfReading().isBefore(start) && !r.getDateOfReading().isAfter(end))
+                .filter(r -> (finalKindOfMeter == null || r.getKindOfMeter().equals(finalKindOfMeter)))
+                .collect(Collectors.toList());
+
+        return Response.ok(filteredReadings).build();
+    }
+
     @Path("/{uuid}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -71,24 +117,6 @@ public class readings {
         } else {
             System.out.println("Customer not found.");
             return Response.status(Response.Status.NOT_FOUND).build();
-        }
-    }
-
-    @GET
-    @Path("/readings")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getReadings(
-            @QueryParam("customer") UUID id,
-            @QueryParam("start") LocalDate startDate,
-            @QueryParam("end") LocalDate endDate,
-            @QueryParam("kindOfMeter") KindOfMeter kindOfMeter) {
-
-        try {
-            List<Reading> readings = CrudReading.getReadings(id, startDate, endDate, kindOfMeter);
-            Reading reading = new Reading();
-            return Response.ok(reading).build();
-        } catch (SQLException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
 

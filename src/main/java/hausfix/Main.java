@@ -36,13 +36,7 @@ public class Main {
 
         dbManager.openConnection(getProperties());
 
-        //crudCustomerManager.readAllCustomers();
-
-        crudReadingManager.getReadings(UUID.fromString("d71fe546-2917-4719-85c0-056bcf37ac1f"), LocalDate.of(1990, 1, 1), LocalDate.of(1990, 1, 1), KindOfMeter.STROM);
-
-        server.startRestServer();
-
-        //dbManager.closeConnection();
+        Server.startRestServer();
 
     }
 

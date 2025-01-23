@@ -157,8 +157,6 @@ public class CrudCustomerTest {
         assertTrue(output.contains("No customer found with ID " + nonExistentId), "Expected message for non-existent customer.");
     }
 
-
-
     @Test
     public void testDeleteCustomerByIdSuccess() throws SQLException {
 

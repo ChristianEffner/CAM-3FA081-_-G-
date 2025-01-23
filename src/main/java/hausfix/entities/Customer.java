@@ -22,7 +22,7 @@ public class Customer implements ICustomer {
     }
 
     public Customer() {
-        // Standardkonstruktor, der erforderlich ist, um Jackson zu ermöglichen, das Objekt zu erstellen
+
     }
 
     @Override
