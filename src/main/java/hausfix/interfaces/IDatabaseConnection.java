@@ -1,10 +1,12 @@
 package hausfix.interfaces;
+import java.sql.Connection;
+
 import java.util.Properties;
 
 
 public interface IDatabaseConnection {
 
-    IDatabaseConnection openConnection(Properties properties);
+    Connection openConnection(Properties properties);
 
     void createAllTables();
 

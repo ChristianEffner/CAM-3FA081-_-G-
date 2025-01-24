@@ -2,9 +2,7 @@ package hausfix.CRUD;
 import hausfix.Database.DatabaseConnection;
 import hausfix.entities.Customer;
 import hausfix.enums.Gender;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.sql.*;
@@ -16,27 +14,26 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class CrudCustomerTest {
 
-    private CrudCustomer crudCustomer;
-    private Connection connection;
+    private static CrudCustomer crudCustomer;
+    private static Connection connection;
 
-    @BeforeEach
-    public void setUp() throws SQLException {
+    @BeforeAll
+    public static void setUp() throws SQLException {
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
-        connection = (Connection) dbManager.openConnection(getProperties());
+        connection = dbManager.openConnection(getProperties());
         crudCustomer = new CrudCustomer();
-
     }
 
-    @AfterEach
-    public void tearDown() throws SQLException {
-        DatabaseConnection dbManager = DatabaseConnection.getInstance();
+    @AfterAll
+    public static void tearDown() throws SQLException {
+        DatabaseConnection dbManager = new DatabaseConnection();
+        connection = dbManager.openConnection(getProperties());
+        dbManager.truncateAllTables();
         dbManager.closeConnection();
     }
 
     @Test
     public void testAddNewCustomerSuccess() throws SQLException {
-
-        Connection connection = DatabaseConnection.getInstance().connection;
 
         Customer customer = new Customer(UUID.randomUUID(), "John", "Doe", LocalDate.of(1990, 1, 1), Gender.M);
         crudCustomer.addNewCustomer(customer);
@@ -57,7 +54,6 @@ public class CrudCustomerTest {
     @Test
     public void testAddNewCustomerWithNullFields() {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         Customer customer = new Customer(UUID.randomUUID(), null, "12", LocalDate.of(1995, 5, 15), Gender.U);
 
         assertThrows(SQLException.class, () -> crudCustomer.addNewCustomer(customer));
@@ -67,7 +63,6 @@ public class CrudCustomerTest {
     @Test
     public void testReadCustomerSuccess() throws SQLException {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Setup: Einen neuen Kunden hinzufügen
         UUID customerId = UUID.randomUUID();
         Customer customer = new Customer(customerId, "John", "Doe", LocalDate.of(1990, 1, 1), Gender.M);
@@ -88,7 +83,6 @@ public class CrudCustomerTest {
     @Test
     public void testReadCustomerNotFound() {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Test: Versuche, einen Kunden zu lesen, der nicht existiert
         UUID nonExistentId = UUID.randomUUID();
         Customer retrievedCustomer = crudCustomer.readCustomer(nonExistentId);
@@ -107,13 +101,11 @@ public class CrudCustomerTest {
         // Assertions
         assertNotNull(customers, "Customer list should not be null.");
         assertFalse(customers.isEmpty(), "Customer list should not be empty.");
-
     }
 
     @Test
     public void testUpdateCustomerByIdSuccess() throws SQLException {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Setup: Einen neuen Kunden hinzufügen
         UUID customerId = UUID.randomUUID();
         Customer originalCustomer = new Customer(customerId, "John", "Doe", LocalDate.of(1990, 1, 1), Gender.M);
@@ -137,7 +129,6 @@ public class CrudCustomerTest {
     @Test
     public void testUpdateCustomerByIdNotFound() {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Test: Versuche, einen nicht existierenden Kunden zu aktualisieren
         UUID nonExistentId = UUID.randomUUID();
         Customer nonExistentCustomer = new Customer(nonExistentId, "Ghost", "User", LocalDate.of(1980, 1, 1), Gender.M);
@@ -160,7 +151,6 @@ public class CrudCustomerTest {
     @Test
     public void testDeleteCustomerByIdSuccess() throws SQLException {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Setup: Einen neuen Kunden hinzufügen
         UUID customerId = UUID.randomUUID();
         Customer customer = new Customer(customerId, "John", "Doe", LocalDate.of(1990, 1, 1), Gender.M);

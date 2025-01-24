@@ -2,7 +2,8 @@ package hausfix.CRUD;
 import hausfix.Database.DatabaseConnection;
 import hausfix.entities.Customer;
 import hausfix.entities.Reading;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -18,24 +19,31 @@ import static org.junit.jupiter.api.Assertions.*;
 class CrudReadingTest {
 
 
-    private CrudCustomer crudCustomer;
-    private CrudReading crudReading;
-    private Connection connection;
+    private static CrudCustomer crudCustomer;
+    private static CrudReading crudReading;
+    private static Connection connection;
 
-    @BeforeEach
-    public void setUp() throws SQLException {
+    @BeforeAll
+    public static void setUp() throws SQLException {
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
-        connection = (Connection) dbManager.openConnection(getProperties());
-
-        // Korrekte Initialisierung der Klassenfelder
+        connection = dbManager.openConnection(getProperties());
         crudCustomer = new CrudCustomer();
         crudReading = new CrudReading();
     }
 
+    @AfterAll
+    public static void tearDown() throws SQLException {
+        DatabaseConnection dbManager = new DatabaseConnection();
+        connection = dbManager.openConnection(getProperties());
+        dbManager.truncateAllTables();
+        dbManager.closeConnection();
+    }
+
+
+
     @Test
     public void testAddNewReadingSuccess() throws SQLException {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Setup: Einen neuen Kunden und ein Reading erstellen
         UUID customerId = UUID.randomUUID();
         Customer customer = new Customer(customerId, "John", "Doe", LocalDate.of(1990, 1, 1), Gender.M);
@@ -63,7 +71,6 @@ class CrudReadingTest {
     @Test
     public void testAddNewReadingWithNonExistentCustomer() throws SQLException {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Setup: Ein Reading mit einem neuen Kunden erstellen, der noch nicht in der DB ist
         UUID customerId = UUID.randomUUID();
         Customer customer = new Customer(customerId, "Jane", "Smith", LocalDate.of(1985, 5, 15), Gender.W);
@@ -93,7 +100,6 @@ class CrudReadingTest {
     @Test
     public void testReadReadingSuccess() throws SQLException {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Setup: Ein Reading mit einer bekannten ID hinzufügen
         UUID readingId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();
@@ -121,7 +127,6 @@ class CrudReadingTest {
     @Test
     public void testReadReadingNotFound() throws SQLException {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Setup: Eine ungültige UUID für das Reading
         UUID invalidReadingId = UUID.randomUUID();
 
@@ -136,7 +141,6 @@ class CrudReadingTest {
     @Test
     public void testDeleteReadingByIdSuccess() throws SQLException {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Setup: Ein neues Reading in die Datenbank einfügen
         UUID readingId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();
@@ -163,7 +167,6 @@ class CrudReadingTest {
     @Test
     public void testDeleteReadingByIdNotFound() throws SQLException {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Setup: Eine ungültige UUID für das Reading
         UUID invalidReadingId = UUID.randomUUID();
 
@@ -183,7 +186,6 @@ class CrudReadingTest {
     @Test
     public void testUpdateReadingByIdSuccess() throws SQLException {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Setup: Ein neues Reading in die Datenbank einfügen
         UUID readingId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();
@@ -218,7 +220,6 @@ class CrudReadingTest {
     @Test
     public void testUpdateReadingByIdNotFound() throws SQLException {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Setup: Eine ungültige UUID für das Reading
         UUID invalidReadingId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();

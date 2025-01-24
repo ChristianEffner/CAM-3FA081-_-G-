@@ -7,7 +7,6 @@ import java.util.Properties;
 public class DatabaseConnection implements IDatabaseConnection {
 
     public Connection connection;
-    IDatabaseConnection dbConnection;
     private static DatabaseConnection INSTANCE;
 
     public DatabaseConnection() {
@@ -24,7 +23,7 @@ public class DatabaseConnection implements IDatabaseConnection {
 
 
     @Override
-    public IDatabaseConnection openConnection(Properties properties) {
+    public java.sql.Connection openConnection(Properties properties) {
         String url = properties.getProperty("db.url");
         String user = properties.getProperty("db.user");
         String pw = properties.getProperty("db.pw");
@@ -36,7 +35,7 @@ public class DatabaseConnection implements IDatabaseConnection {
             System.out.println(e);
         }
         System.out.println("connection established");
-        return dbConnection;
+        return connection;
     }
 
 

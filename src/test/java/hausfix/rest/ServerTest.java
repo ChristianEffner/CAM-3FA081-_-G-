@@ -1,19 +1,15 @@
 package hausfix.rest;
-
 import com.sun.net.httpserver.HttpServer;
 import hausfix.Database.DatabaseConnection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.Connection;
-
 import static hausfix.Main.getProperties;
-import static hausfix.rest.Server.server;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ServerTest {
