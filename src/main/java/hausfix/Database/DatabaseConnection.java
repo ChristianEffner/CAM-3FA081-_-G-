@@ -1,7 +1,11 @@
 package hausfix.Database;
+
 import hausfix.interfaces.IDatabaseConnection;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 public class DatabaseConnection implements IDatabaseConnection {
@@ -9,10 +13,7 @@ public class DatabaseConnection implements IDatabaseConnection {
     public Connection connection;
     private static DatabaseConnection INSTANCE;
 
-    public DatabaseConnection() {
-
-    }
-
+    public DatabaseConnection() {}
 
     public static DatabaseConnection getInstance() {
         if (INSTANCE == null) {
@@ -21,27 +22,27 @@ public class DatabaseConnection implements IDatabaseConnection {
         return INSTANCE;
     }
 
-
     @Override
-    public java.sql.Connection openConnection(Properties properties) {
+    public Connection openConnection(Properties properties) {
         String url = properties.getProperty("db.url");
         String user = properties.getProperty("db.user");
         String pw = properties.getProperty("db.pw");
-
-
         try {
             connection = DriverManager.getConnection(url, user, pw);
+            System.out.println("connection established");
         } catch (SQLException e) {
-            System.out.println(e);
+            System.out.println("Error opening connection: " + e.getMessage());
         }
-        System.out.println("connection established");
         return connection;
     }
 
-
     @Override
     public void createAllTables() {
-        Connection connection = DatabaseConnection.getInstance().connection;
+        // Wenn keine Connection, Abbruch
+        if (connection == null) {
+            System.out.println("createAllTables() aufgerufen, aber connection == null. Abbruch.");
+            return;
+        }
 
         String createCustomerTableSQL = "CREATE TABLE IF NOT EXISTS Customer (" +
                 "id UUID PRIMARY KEY," +
@@ -62,8 +63,8 @@ public class DatabaseConnection implements IDatabaseConnection {
                 "FOREIGN KEY (customer_id) REFERENCES Customer(id) ON DELETE SET NULL" +
                 ")";
 
+        // Ausführung der SQL-Befehle
         try (Statement statement = connection.createStatement()) {
-
             statement.execute(createCustomerTableSQL);
             System.out.println("Customer table created.");
 
@@ -77,42 +78,46 @@ public class DatabaseConnection implements IDatabaseConnection {
 
     @Override
     public void truncateAllTables() {
-        try (Statement statement = connection.createStatement()) {
+        if (connection == null) {
+            System.out.println("truncateAllTables() -> connection == null. Abbruch.");
+            return;
+        }
 
-            // Prüfe, ob die Datenbank MySQL/MariaDB ist, um TRUNCATE zu verwenden
+        try (Statement statement = connection.createStatement()) {
+            // Prüfen, ob es H2 oder z. B. MySQL ist
             if (!connection.getMetaData().getDatabaseProductName().equalsIgnoreCase("H2")) {
+                // Nicht-H2: TRUNCATE + FOREIGN_KEY_CHECKS
                 statement.executeUpdate("SET FOREIGN_KEY_CHECKS = 0;");
                 statement.executeUpdate("TRUNCATE TABLE READING;");
                 statement.executeUpdate("TRUNCATE TABLE CUSTOMER;");
                 statement.executeUpdate("SET FOREIGN_KEY_CHECKS = 1;");
             } else {
-                // Verwende DELETE für H2-Datenbank
+                // H2: DELETE
                 statement.executeUpdate("DELETE FROM READING;");
                 statement.executeUpdate("DELETE FROM CUSTOMER;");
             }
-
             System.out.println("Tables truncated successfully.");
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-
     @Override
     public void removeAllTables() {
+        if (connection == null) {
+            System.out.println("removeAllTables() -> connection == null. Abbruch.");
+            return;
+        }
+
         String dropCustomerTableSQL = "DROP TABLE IF EXISTS customer;";
         String dropReadingTableSQL = "DROP TABLE IF EXISTS reading;";
-        Connection connection = DatabaseConnection.getInstance().connection;
 
         try (Statement statement = connection.createStatement()) {
-
             statement.executeUpdate(dropReadingTableSQL);
             System.out.println("Reading table dropped successfully.");
 
             statement.executeUpdate(dropCustomerTableSQL);
-            System.out.println("Costumer table dropped successfully.");
-
+            System.out.println("Customer table dropped successfully.");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -133,7 +138,3 @@ public class DatabaseConnection implements IDatabaseConnection {
         }
     }
 }
-
-
-
-
