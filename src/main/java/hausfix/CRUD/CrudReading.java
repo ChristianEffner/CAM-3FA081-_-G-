@@ -83,7 +83,9 @@ public class CrudReading extends DatabaseConnection {
                 String meter_id = resultSet.getString("meter_id");
                 boolean substitute = resultSet.getBoolean("substitute");
 
-                Customer customer = new Customer();
+
+                Customer customer = new Customer(customer_id, "John", "Doe", LocalDate.now(), Gender.M);
+                //Customer customer = new Customer();
                 Reading reading1 = new Reading(id, comment, customer, date_of_reading, kindOfMeter, meter_count, meter_id, substitute);
                 readings.add(reading1);
 
