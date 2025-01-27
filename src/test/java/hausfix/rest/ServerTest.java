@@ -20,7 +20,8 @@ class ServerTest {
     @BeforeEach
     public void setUp() {
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
-        connection = (Connection) dbManager.openConnection(getProperties());
+        connection = dbManager.openConnection(getProperties());
+        Connection connection = DatabaseConnection.getInstance().connection;
         Server server1 = new Server();
         server1.startRestServer();
     }
@@ -35,7 +36,6 @@ class ServerTest {
     @Test
     void testStartRestServer() throws Exception {
 
-        Connection connection = DatabaseConnection.getInstance().connection;
         // Testen, ob der Server erfolgreich gestartet wurde
         URL url = new URL("http://localhost:8080/customers");
         HttpURLConnection connection1 = (HttpURLConnection) url.openConnection();

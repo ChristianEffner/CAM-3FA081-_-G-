@@ -12,9 +12,9 @@ import java.util.UUID;
 @Path("/customers")
 public class customers {
 
-    public customers(CrudCustomer crudCustomer) {
+    public customers(CrudCustomer crudCustomer) {}
 
-    }
+    public customers() {}
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)

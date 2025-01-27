@@ -14,6 +14,7 @@ import java.util.UUID;
 
 public class CrudCustomer {
 
+    /*
     public Response addNewCustomer(Customer customer) throws SQLException {
         String query = "INSERT INTO customer (id, first_name, last_name, birth_date, gender) VALUES (?, ?, ?, ?, ?)";
         Connection connection = DatabaseConnection.getInstance().connection;
@@ -42,7 +43,34 @@ public class CrudCustomer {
             throw new SQLException("Error while creating customer: " + e.getMessage(), e);
         }
     }
+     */
 
+    public Response addNewCustomer(Customer customer) throws SQLException {
+        String query = "INSERT INTO customer (id, first_name, last_name, birth_date, gender) VALUES (?, ?, ?, ?, ?)";
+        Connection connection = DatabaseConnection.getInstance().connection;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setString(1, customer.getId().toString());
+            preparedStatement.setString(2, customer.getFirstName());
+            preparedStatement.setString(3, customer.getLastName());
+            preparedStatement.setDate(4, java.sql.Date.valueOf(customer.getBirthDate()));
+            preparedStatement.setString(5, customer.getGender().toString());
+
+            preparedStatement.executeUpdate(); // Führe das Insert aus
+
+            return Response.status(Response.Status.CREATED) // Status 201 Created
+                    .entity(customer) // Den neu erstellten Kunden zurückgeben
+                    .build();
+        } catch (SQLException e) {
+            // Falls es sich um einen "null" Fehler handelt
+            if (e.getMessage().contains("Cannot be null")) {
+                // Gebe die Ausnahme mit einer spezifischen Nachricht weiter
+                throw new SQLException("Null value not allowed for customer fields: " + e.getMessage(), e);
+            }
+            // Andere SQLException werfen
+            throw e;
+        }
+    }
 
     public List<Customer> readAllCustomers() {
         String selectCustomer = "SELECT * FROM customer;";

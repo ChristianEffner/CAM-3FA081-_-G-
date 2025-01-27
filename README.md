@@ -1,4 +1,4 @@
-# CAM-3FA081-_-G- HausFix
+# Projekt: Hausfix
 
 Hausfix ist eine Java-basierte Anwendung, die ein vollständiges CRUD-System (Create, Read, Update, Delete) mit REST-API-Unterstützung bietet. Es richtet sich an die Verwaltung von Kundendaten und Zählerständen, einschließlich der Integration einer relationalen Datenbank.
 
@@ -66,7 +66,7 @@ hausfix/
 ### Schritte:
 1. **Repository klonen**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/ChristianEffner/CAM-3FA081-_-G-
    cd hausfix
    ```
 
@@ -85,16 +85,16 @@ hausfix/
 ## **Funktionen**
 
 1. **Kundenverwaltung**:
-    - Hinzufügen, Bearbeiten, Löschen und Anzeigen von Kunden.
+   - Hinzufügen, Bearbeiten, Löschen und Anzeigen von Kunden.
 
 2. **Zählerstandsverwaltung**:
-    - Verwalten von Zählerständen mit Typen (Strom, Wasser etc.).
+   - Verwalten von Zählerständen mit Typen (Strom, Wasser etc.).
 
 3. **REST-API**:
-    - Ermöglicht externe Interaktionen mit den Daten über Endpunkte.
+   - Ermöglicht externe Interaktionen mit den Daten über Endpunkte.
 
 4. **Datenbankmanagement**:
-    - Automatische Tabellenverwaltung und Trunkierung.
+   - Automatische Tabellenverwaltung und Trunkierung.
 
 ---
 
@@ -132,11 +132,12 @@ mvn test
 
 ## **Weiterentwicklung**
 
-### TODO's:
+### Vorschläge:
 - Implementierung eines Frontends mit einem Framework wie React oder Angular.
+- Verbesserung der Datenvalidierung durch zusätzliche JSON-Schemas.
 - Integration eines Benutzer-Authentifizierungssystems.
 
 ---
 
-**Kontakt:** Bei Fragen oder Vorschlägen wenden Sie sich an das Entwicklungsteam. Chris, Alper und Max.
+**Kontakt:** Bei Fragen oder Vorschlägen wenden Sie sich an das Entwicklungsteam.
 
