@@ -12,25 +12,40 @@ import java.util.UUID;
 @Path("/customers")
 public class customers {
 
+    public customers(CrudCustomer crudCustomer) {
+
+    }
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createCustomer(RestCustomer restCustomer) throws SQLException {
         var customer = restCustomer.customer();
-        // UUID generieren, falls nicht vorhanden
         if (customer.getId() == null) {
             customer.setId(UUID.randomUUID());
         }
 
-        // Neuen Kunden hinzufügen
-        CrudCustomer customer1 = new CrudCustomer();
-        customer1.addNewCustomer(customer);
+        // Check if the customer already exists
+        CrudCustomer crudCustomer = new CrudCustomer();
+        if (crudCustomer.readCustomer(customer.getId()) != null) {
+            // Customer with the same ID already exists
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("Customer with this ID already exists")
+                    .build();
+        }
 
-        // Antwort
+        // Check for other validation
+        if (customer.getFirstName().isEmpty() || customer.getLastName().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid customer data").build();
+        }
+
+        crudCustomer.addNewCustomer(customer);
+
         return Response.status(Response.Status.CREATED)
                 .entity(customer) // Den gespeicherten Kunden mit UUID zurückgeben
                 .build();
     }
+
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
@@ -66,7 +81,7 @@ public class customers {
             return Response.ok(customer).build();
         } else {
             System.out.println("Customer not found.");
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND).entity("Customer not found").build();
         }
     }
 
