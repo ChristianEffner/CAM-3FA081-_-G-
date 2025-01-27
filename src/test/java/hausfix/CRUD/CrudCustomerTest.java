@@ -2,6 +2,7 @@ package hausfix.CRUD;
 import hausfix.Database.DatabaseConnection;
 import hausfix.entities.Customer;
 import hausfix.enums.Gender;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.*;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -53,12 +54,29 @@ public class CrudCustomerTest {
 
     @Test
     public void testAddNewCustomerWithNullFields() {
+        // Erstelle einen Kunden mit null für first_name
+        Customer customer = new Customer(UUID.randomUUID(), null, "Doe", LocalDate.of(1995, 5, 15), Gender.U);
 
-        Customer customer = new Customer(UUID.randomUUID(), null, "12", LocalDate.of(1995, 5, 15), Gender.U);
+        // Stelle sicher, dass eine SQLException geworfen wird
+        SQLException exception = assertThrows(SQLException.class, () -> crudCustomer.addNewCustomer(customer));
 
-        assertThrows(SQLException.class, () -> crudCustomer.addNewCustomer(customer));
+        // Überprüfe, ob die Fehlermeldung den "Cannot be null" Fehler enthält
+        assertTrue(exception.getMessage().contains("Column 'first_name' cannot be null"));
     }
 
+    @Test
+    void testAddNewCustomerWithNullFieldsThrowsSQLException() {
+        // Arrange: Erstelle ein Customer-Objekt mit einem null-Wert für 'first_name'
+        Customer customerWithNullFirstName = new Customer(UUID.randomUUID(),null , "last_name", LocalDate.of(1995, 5, 15), Gender.M);
+
+        // Act & Assert: Versuche, den Kunden hinzuzufügen und erwarte eine SQLException
+        SQLException exception = assertThrows(SQLException.class, () -> {
+            crudCustomer.addNewCustomer(customerWithNullFirstName);
+        });
+
+        // Überprüfe, ob die erwartete Fehlermeldung im Exception-Message enthalten ist
+        assertTrue(exception.getMessage().contains("Column 'first_name' cannot be null"));
+    }
 
     @Test
     public void testReadCustomerSuccess() throws SQLException {
@@ -148,6 +166,7 @@ public class CrudCustomerTest {
         assertTrue(output.contains("No customer found with ID " + nonExistentId), "Expected message for non-existent customer.");
     }
 
+
     @Test
     public void testDeleteCustomerByIdSuccess() throws SQLException {
 
@@ -186,4 +205,38 @@ public class CrudCustomerTest {
         assertTrue(output.contains("No customer found with ID " + nonExistentId), "Expected message for non-existent customer.");
     }
 
+    @Test
+    void testReadAllCustomersWithData() {
+        // Test für den Fall, dass Daten in der Tabelle vorhanden sind
+        List<Customer> customers = crudCustomer.readAllCustomers();
+
+        assertEquals(3, customers.size(), "Es sollten drei Kunden in der Liste sein.");
+        // Weitere Überprüfungen der Kundendaten wie IDs, Namen, etc.
+    }
+
+    @Test
+    void testReadAllCustomersWithEmptyTable() throws SQLException {
+        // Test für den Fall, dass die Tabelle leer ist
+        String deleteAllData = "DELETE FROM customer;";
+        try (PreparedStatement deleteStatement = connection.prepareStatement(deleteAllData)) {
+            deleteStatement.execute();
+        }
+
+        List<Customer> customers = crudCustomer.readAllCustomers();
+
+        assertTrue(customers.isEmpty(), "Die Kundenliste sollte leer sein, wenn keine Daten in der Tabelle vorhanden sind.");
+    }
+
+    @Test
+    void testReadAllCustomersWithSQLException() throws SQLException {
+        // Test für den Fall, dass eine SQLException auftritt
+        Connection faultyConnection = DatabaseConnection.getInstance().connection;
+        //faultyConnection.close(); // Erzwingt eine Exception
+
+
+        List<Customer> customers = crudCustomer.readAllCustomers();
+
+        assertNotNull(customers, "Die Kundenliste sollte nicht null sein.");
+        assertTrue(customers.isEmpty(), "Die Kundenliste sollte leer sein, wenn eine SQLException auftritt.");
+    }
 }

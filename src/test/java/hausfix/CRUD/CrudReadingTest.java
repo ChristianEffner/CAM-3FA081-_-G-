@@ -2,6 +2,7 @@ package hausfix.CRUD;
 import hausfix.Database.DatabaseConnection;
 import hausfix.entities.Customer;
 import hausfix.entities.Reading;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
