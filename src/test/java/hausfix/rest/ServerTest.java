@@ -69,5 +69,29 @@ class ServerTest {
         // Der Server sollte nicht neu gestartet werden
         assertSame(initialServer, server1.getServer(), "Server should not be restarted if already running.");
     }
+
+    @Test
+    void testStopServerWhenServerIsRunning() {
+        // Server starten
+        Server.startRestServer();
+
+        // Sicherstellen, dass der Server läuft
+        assertNotNull(Server.getServer(), "Server should be running before stopping.");
+
+        // Server stoppen
+        Server.stopServer();
+
+        // Sicherstellen, dass der Server gestoppt wurde
+        assertNull(Server.getServer(), "Server should be stopped.");
+    }
+
+    @Test
+    void testStopServerWhenNoServerRunning() {
+        // Server stoppen, ohne dass er läuft (initial null)
+        Server.stopServer();
+
+        // Überprüfen, dass keine Fehler auftreten und die Ausgabe korrekt ist
+        // Hier könntest du das System.out.println mocken, um sicherzustellen, dass "No server to stop." ausgegeben wird, falls nötig
+    }
 }
 
