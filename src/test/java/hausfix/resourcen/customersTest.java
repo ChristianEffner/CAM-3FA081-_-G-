@@ -28,7 +28,7 @@ class customersTest {
     @BeforeAll
     void setUp() throws SQLException {
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
-        connection = (Connection) dbManager.openConnection(getProperties());
+        connection = dbManager.openConnection(getProperties());
         crudCustomer = new CrudCustomer();
         customerResource = new customers(crudCustomer);
     }
