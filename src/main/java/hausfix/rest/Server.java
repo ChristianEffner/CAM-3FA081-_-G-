@@ -18,7 +18,7 @@ public class Server {
         final String pack = "hausfix.resourcen";
         System.out.println("Starting server...");
         System.out.println("URL: " + url);
-        ResourceConfig rc = new ResourceConfig().packages(pack);
+        ResourceConfig rc = new ResourceConfig().packages(pack).register(StaticResourceHandler.class);
         server = JdkHttpServerFactory.createHttpServer(URI.create(url), rc);
         System.out.println("Ready for requests");
     }
