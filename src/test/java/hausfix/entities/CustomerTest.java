@@ -2,9 +2,6 @@ package hausfix.entities;
 import hausfix.enums.Gender;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.time.LocalDate;
 import java.util.UUID;
 
