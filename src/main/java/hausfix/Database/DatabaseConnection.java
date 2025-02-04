@@ -1,9 +1,11 @@
 package hausfix.Database;
 
 import hausfix.interfaces.IDatabaseConnection;
+import hausfix.entities.User;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
@@ -44,33 +46,45 @@ public class DatabaseConnection implements IDatabaseConnection {
             return;
         }
 
-        String createCustomerTableSQL = "CREATE TABLE IF NOT EXISTS Customer (" +
-                "id UUID PRIMARY KEY," +
-                "first_name VARCHAR(255) NOT NULL," +
-                "last_name VARCHAR(255) NOT NULL," +
-                "birth_date DATE NOT NULL," +
-                "gender ENUM('D', 'M', 'U', 'W') NOT NULL);";
+        // users-Tabelle in Kleinbuchstaben
+        String createUserTableSQL = "CREATE TABLE IF NOT EXISTS `users` ("
+                + "id BIGINT AUTO_INCREMENT PRIMARY KEY,"
+                + "username VARCHAR(255) NOT NULL UNIQUE,"
+                + "password VARCHAR(255) NOT NULL"
+                + ");";
 
-        String createReadingTableSQL = "CREATE TABLE IF NOT EXISTS Reading (" +
-                "id UUID PRIMARY KEY," +
-                "comment VARCHAR(255)," +
-                "customer_id UUID," +
-                "date_of_reading DATE," +
-                "kind_of_meter ENUM('HEIZUNG', 'STROM', 'WASSER', 'UNBEKANNT') NOT NULL," +
-                "meter_count DOUBLE," +
-                "meter_id VARCHAR(255)," +
-                "substitute BOOLEAN," +
-                "FOREIGN KEY (customer_id) REFERENCES Customer(id) ON DELETE SET NULL" +
-                ")";
+        String createCustomerTableSQL = "CREATE TABLE IF NOT EXISTS Customer ("
+                + "id UUID PRIMARY KEY,"
+                + "first_name VARCHAR(255) NOT NULL,"
+                + "last_name VARCHAR(255) NOT NULL,"
+                + "birth_date DATE NOT NULL,"
+                + "gender ENUM('D', 'M', 'U', 'W') NOT NULL,"
+                + "user_id BIGINT,"
+                + "FOREIGN KEY (user_id) REFERENCES `users`(id) ON DELETE SET NULL"
+                + ");";
+
+        String createReadingTableSQL = "CREATE TABLE IF NOT EXISTS Reading ("
+                + "id UUID PRIMARY KEY,"
+                + "comment VARCHAR(255),"
+                + "customer_id UUID,"
+                + "date_of_reading DATE,"
+                + "kind_of_meter ENUM('HEIZUNG', 'STROM', 'WASSER', 'UNBEKANNT') NOT NULL,"
+                + "meter_count DOUBLE,"
+                + "meter_id VARCHAR(255),"
+                + "substitute BOOLEAN,"
+                + "FOREIGN KEY (customer_id) REFERENCES Customer(id) ON DELETE SET NULL"
+                + ");";
 
         // Ausführung der SQL-Befehle
         try (Statement statement = connection.createStatement()) {
+            statement.execute(createUserTableSQL);
+            System.out.println("`users` table created.");
+
             statement.execute(createCustomerTableSQL);
             System.out.println("Customer table created.");
 
             statement.execute(createReadingTableSQL);
             System.out.println("Reading table created.");
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -90,11 +104,13 @@ public class DatabaseConnection implements IDatabaseConnection {
                 statement.executeUpdate("SET FOREIGN_KEY_CHECKS = 0;");
                 statement.executeUpdate("TRUNCATE TABLE READING;");
                 statement.executeUpdate("TRUNCATE TABLE CUSTOMER;");
+                statement.executeUpdate("TRUNCATE TABLE `users`;");
                 statement.executeUpdate("SET FOREIGN_KEY_CHECKS = 1;");
             } else {
                 // H2: DELETE
                 statement.executeUpdate("DELETE FROM READING;");
                 statement.executeUpdate("DELETE FROM CUSTOMER;");
+                statement.executeUpdate("DELETE FROM `users`;");
             }
             System.out.println("Tables truncated successfully.");
         } catch (SQLException e) {
@@ -109,8 +125,9 @@ public class DatabaseConnection implements IDatabaseConnection {
             return;
         }
 
-        String dropCustomerTableSQL = "DROP TABLE IF EXISTS customer;";
-        String dropReadingTableSQL = "DROP TABLE IF EXISTS reading;";
+        String dropReadingTableSQL = "DROP TABLE IF EXISTS Reading;";
+        String dropCustomerTableSQL = "DROP TABLE IF EXISTS Customer;";
+        String dropUserTableSQL = "DROP TABLE IF EXISTS `users`;";
 
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(dropReadingTableSQL);
@@ -118,6 +135,9 @@ public class DatabaseConnection implements IDatabaseConnection {
 
             statement.executeUpdate(dropCustomerTableSQL);
             System.out.println("Customer table dropped successfully.");
+
+            statement.executeUpdate(dropUserTableSQL);
+            System.out.println("`users` table dropped successfully.");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -135,6 +155,32 @@ public class DatabaseConnection implements IDatabaseConnection {
             }
         } else {
             System.out.println("Connection is already closed");
+        }
+    }
+
+    public <T> void save(T entity) {
+        if (connection == null) {
+            System.out.println("save() aufgerufen, aber connection == null. Abbruch.");
+            return;
+        }
+
+        try {
+            // JDBC-Logik für User speichern
+            if (entity instanceof User) {
+                User user = (User) entity;
+                String sql = "INSERT INTO `users` (username, password) VALUES (?, ?)";
+
+                try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                    preparedStatement.setString(1, user.getUsername());
+                    preparedStatement.setString(2, user.getPassword());
+                    preparedStatement.executeUpdate();
+                    System.out.println("User erfolgreich gespeichert.");
+                }
+            } else {
+                System.out.println("Unbekannte Entität: " + entity.getClass().getSimpleName());
+            }
+        } catch (SQLException e) {
+            System.err.println("Fehler beim Speichern der Entität: " + e.getMessage());
         }
     }
 }

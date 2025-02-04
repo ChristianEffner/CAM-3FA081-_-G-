@@ -15,13 +15,18 @@ public class Server {
             return;
         }
         String url = "http://localhost:8080/";
-        final String pack = "hausfix.resourcen";
         System.out.println("Starting server...");
         System.out.println("URL: " + url);
-        ResourceConfig rc = new ResourceConfig().packages(pack).register(StaticResourceHandler.class);
+
+        // Registrierung von mehreren Paketen
+        ResourceConfig rc = new ResourceConfig()
+                .packages("hausfix.resourcen", "hausfix.rest") // Beide Pakete registrieren
+                .register(StaticResourceHandler.class);       // Statische Ressourcen
+
         server = JdkHttpServerFactory.createHttpServer(URI.create(url), rc);
         System.out.println("Ready for requests");
     }
+
 
 
     public static void stopServer() {
