@@ -62,6 +62,7 @@ public class readings {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllReadings(
+            @QueryParam("userId") Long userId,         // Neuer Parameter
             @QueryParam("customer") UUID customer,
             @QueryParam("start") String startDate,
             @QueryParam("end") String endDate,
@@ -69,7 +70,13 @@ public class readings {
 
         CrudReading readingCrud = new CrudReading();
 
-        // Standardwerte setzen, falls keine Daten angegeben sind
+        // Falls userId angegeben wurde, filtere direkt nach dem User
+        if (userId != null) {
+            List<Reading> readingsForUser = readingCrud.readAllReadingForUser(userId);
+            return Response.ok(readingsForUser).build();
+        }
+
+        // Falls kein userId-Parameter gesetzt wurde, führe den bestehenden Filtermechanismus aus:
         LocalDate start = (startDate != null) ? LocalDate.parse(startDate) : LocalDate.MIN;
         LocalDate end = (endDate != null) ? LocalDate.parse(endDate) : LocalDate.now();
 
@@ -84,14 +91,12 @@ public class readings {
             }
         }
 
-        // Validierung: Startdatum darf nicht nach dem Enddatum liegen
         if (start.isAfter(end)) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Start date cannot be after end date.")
                     .build();
         }
 
-        // Readings abrufen und nach den Filtern filtern
         List<Reading> allReadings = readingCrud.readAllReading();
         KindOfMeter finalKindOfMeter = kindOfMeter;
         List<Reading> filteredReadings = allReadings.stream()
