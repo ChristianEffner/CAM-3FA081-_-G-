@@ -62,7 +62,7 @@ public class readings {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllReadings(
-            @QueryParam("userId") Long userId,         // Neuer Parameter
+            @QueryParam("userId") Long userId,   // Neuer Parameter für User-ID
             @QueryParam("customer") UUID customer,
             @QueryParam("start") String startDate,
             @QueryParam("end") String endDate,
@@ -70,13 +70,13 @@ public class readings {
 
         CrudReading readingCrud = new CrudReading();
 
-        // Falls userId angegeben wurde, filtere direkt nach dem User
+        // Falls userId gesetzt ist, nur die Readings dieses Users zurückgeben
         if (userId != null) {
             List<Reading> readingsForUser = readingCrud.readAllReadingForUser(userId);
             return Response.ok(readingsForUser).build();
         }
 
-        // Falls kein userId-Parameter gesetzt wurde, führe den bestehenden Filtermechanismus aus:
+        // Falls kein userId-Parameter übergeben wurde, können weitere Filter (customer, Datum etc.) genutzt werden:
         LocalDate start = (startDate != null) ? LocalDate.parse(startDate) : LocalDate.MIN;
         LocalDate end = (endDate != null) ? LocalDate.parse(endDate) : LocalDate.now();
 
@@ -97,8 +97,10 @@ public class readings {
                     .build();
         }
 
+        // Filtere alle Readings anhand der anderen Parameter
         List<Reading> allReadings = readingCrud.readAllReading();
-        KindOfMeter finalKindOfMeter = kindOfMeter;
+        // Da wir hier keinen userId-Fall haben, werden alle Readings geliefert
+        final KindOfMeter finalKindOfMeter = kindOfMeter;  // Effektiv final
         List<Reading> filteredReadings = allReadings.stream()
                 .filter(r -> (customer == null || r.getCustomer().getId().equals(customer)))
                 .filter(r -> !r.getDateOfReading().isBefore(start) && !r.getDateOfReading().isAfter(end))
@@ -106,7 +108,8 @@ public class readings {
                 .collect(Collectors.toList());
 
         return Response.ok(filteredReadings).build();
-    }
+
+        }
 
     @Path("/{uuid}")
     @GET

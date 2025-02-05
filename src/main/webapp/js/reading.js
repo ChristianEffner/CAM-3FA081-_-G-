@@ -18,80 +18,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Merkt sich das aktuell zu bearbeitende Reading-Objekt
+  // Globale Variablen
   let currentReading = null;
+  let allReadings = [];      // Für automatische meterId-Berechnung
+  let allCustomers = [];     // Für den Dropdown "bestehende Kunden"
 
-  /**
-   * Lädt alle Readings vom Server.
-   * Optionaler Filter: userId (aus localStorage), kindOfMeter (aus Parameter)
-   */
-  async function loadReadings(kindOfMeter = "") {
-    console.log("Lade Readings, Filter =", kindOfMeter);
-    try {
-      const userId = localStorage.getItem("userId");
-      let url = `${apiBaseUrl}/readings`;
-      const queryParams = [];
-      if (userId) {
-        queryParams.push(`userId=${userId}`);
-      }
-      if (kindOfMeter) {
-        queryParams.push(`kindOfMeter=${encodeURIComponent(kindOfMeter)}`);
-      }
-      if (queryParams.length > 0) {
-        url += "?" + queryParams.join("&");
-      }
-      console.log("Request-URL =", url);
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Fehler beim Laden der Ablesungen (Status: ${response.status})`);
-      }
-      const readings = await response.json();
-      console.log("Readings empfangen:", readings);
-      renderReadings(readings);
-    } catch (error) {
-      console.error("Error loading readings:", error);
-      alert("Fehler beim Laden der Ablesungen: " + error.message);
-    }
-  }
-
-  /**
-   * Fügt die geladenen Readings in die Tabelle ein.
-   */
-  function renderReadings(readings) {
-    const tableBody = document.getElementById("readingTableBody");
-    tableBody.innerHTML = "";
-    readings.forEach((reading) => {
-      const row = document.createElement("tr");
-      row.innerHTML =
-        `<td>${reading.id}</td>
-         <td>
-           ${reading.customer?.firstName || "?"}
-           ${reading.customer?.lastName || "?"}
-         </td>
-         <td>${reading.dateOfReading}</td>
-         <td>${reading.kindOfMeter}</td>
-         <td>${reading.meterCount}</td>
-         <td>
-           <button class="btn btn-warning btn-edit" data-id="${reading.id}">Bearbeiten</button>
-           <button class="btn btn-danger btn-delete" data-id="${reading.id}">Löschen</button>
-         </td>`;
-      tableBody.appendChild(row);
-    });
-    attachRowEventListeners();
-  }
-
-  function attachRowEventListeners() {
-    document.querySelectorAll(".btn-edit").forEach((btn) =>
-      btn.addEventListener("click", handleEdit)
-    );
-    document.querySelectorAll(".btn-delete").forEach((btn) =>
-      btn.addEventListener("click", handleDelete)
-    );
-  }
-
-  /**
-   * Klick auf "Bearbeiten": Einzelnes Reading holen und im Modal anzeigen.
-   */
+  // --- Funktion: handleEdit ---
   async function handleEdit(event) {
     const id = event.target.dataset.id;
     console.log("Bearbeiten geklickt, ID =", id);
@@ -116,52 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /**
-   * Klick auf "Speichern" im Bearbeiten-Modal => PUT /readings
-   */
-  document.getElementById("updateReadingBtn").addEventListener("click", async () => {
-    console.log("Update-Button geklickt!");
-    if (!currentReading) {
-      alert("Keine Ablesung zum Bearbeiten geladen!");
-      return;
-    }
-    const id = document.getElementById("editReadingId").value.trim();
-    const kindOfMeter = document.getElementById("editKindOfMeter").value.trim();
-    const meterCount = parseFloat(document.getElementById("editMeterCount").value);
-    const dateOfReading = document.getElementById("editDateOfReading").value.trim();
-    const comment = document.getElementById("editComment").value.trim();
-    if (!id || !kindOfMeter || isNaN(meterCount) || !dateOfReading) {
-      alert("Bitte alle Felder korrekt ausfüllen.");
-      return;
-    }
-    currentReading.id = id;
-    currentReading.kindOfMeter = kindOfMeter;
-    currentReading.meterCount = meterCount;
-    currentReading.dateOfReading = dateOfReading;
-    currentReading.comment = comment;
-    console.log("PUT /readings =>", currentReading);
-    try {
-      const response = await fetch(`${apiBaseUrl}/readings`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(currentReading)
-      });
-      if (!response.ok) {
-        throw new Error("Fehler beim Aktualisieren (Status: " + response.status + ")");
-      }
-      alert("Ablesung erfolgreich aktualisiert!");
-      bootstrap.Modal.getInstance(document.getElementById("editReadingModal")).hide();
-      currentReading = null;
-      loadReadings();
-    } catch (error) {
-      console.error("Error updating reading:", error);
-      alert("Fehler beim Aktualisieren: " + error.message);
-    }
-  });
-
-  /**
-   * Klick auf "Löschen" => DELETE /readings/{id}
-   */
+  // --- Funktion: handleDelete ---
   async function handleDelete(event) {
     const id = event.target.dataset.id;
     console.log("Löschen geklickt, ID =", id);
@@ -183,69 +70,177 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /**
-   * Klick auf "Speichern" bei neuer Ablesung => POST /readings
-   * Wichtig: Der Kunde muss existieren – falls nicht, wird er automatisch für den aktiven User angelegt.
-   */
+  // --- Funktion: attachRowEventListeners ---
+  function attachRowEventListeners() {
+    document.querySelectorAll(".btn-edit").forEach((btn) =>
+      btn.addEventListener("click", handleEdit)
+    );
+    document.querySelectorAll(".btn-delete").forEach((btn) =>
+      btn.addEventListener("click", handleDelete)
+    );
+  }
+
+  // --- Funktion: loadReadings ---
+  async function loadReadings(filterKindOfMeter = "") {
+    console.log("Lade Readings, Filter =", filterKindOfMeter);
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        throw new Error("Kein gültiger Benutzer angemeldet.");
+      }
+      let url = `${apiBaseUrl}/readings?userId=${userId}`;
+      if (filterKindOfMeter) {
+        url += `&kindOfMeter=${encodeURIComponent(filterKindOfMeter)}`;
+      }
+      console.log("Request-URL =", url);
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Fehler beim Laden der Ablesungen (Status: ${response.status})`);
+      }
+      const readings = await response.json();
+      allReadings = readings; // Für meterId-Berechnung
+      console.log("Readings empfangen:", readings);
+      renderReadings(readings);
+    } catch (error) {
+      console.error("Error loading readings:", error);
+      alert("Fehler beim Laden der Ablesungen: " + error.message);
+    }
+  }
+
+  // --- Funktion: renderReadings ---
+  function renderReadings(readings) {
+    const tableBody = document.getElementById("readingTableBody");
+    tableBody.innerHTML = "";
+    readings.forEach((reading) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${reading.id}</td>
+        <td>${reading.customer?.firstName || "?"} ${reading.customer?.lastName || "?"}</td>
+        <td>${reading.dateOfReading}</td>
+        <td>${reading.kindOfMeter}</td>
+        <td>${reading.meterCount}</td>
+        <td>
+          <button class="btn btn-warning btn-edit" data-id="${reading.id}">Bearbeiten</button>
+          <button class="btn btn-danger btn-delete" data-id="${reading.id}">Löschen</button>
+        </td>
+      `;
+      tableBody.appendChild(row);
+    });
+    attachRowEventListeners();
+  }
+
+  // --- Funktion: loadCustomersForReadingModal ---
+  async function loadCustomersForReadingModal() {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+    try {
+      const response = await fetch(`${apiBaseUrl}/customers?userId=${userId}`);
+      if (!response.ok) {
+        throw new Error("Error loading customers. HTTP " + response.status);
+      }
+      const customers = await response.json();
+      allCustomers = customers;
+      populateCustomerDropdown(customers);
+    } catch (error) {
+      console.error("Error loading customers for modal:", error);
+    }
+  }
+
+  function populateCustomerDropdown(customers) {
+    const selectElem = document.getElementById("customerSelect");
+    if (!selectElem) return;
+    selectElem.innerHTML = `<option value="">-- Neuer Kunde --</option>`;
+    customers.forEach((customer) => {
+      const option = document.createElement("option");
+      option.value = customer.id;
+      option.textContent = `${customer.firstName} ${customer.lastName}`;
+      selectElem.appendChild(option);
+    });
+  }
+
+  // --- Beim Öffnen des "Neue Ablesung"-Modals ---
+  const addReadingModalElem = document.getElementById("addReadingModal");
+  addReadingModalElem.addEventListener("show.bs.modal", () => {
+    // Felder zurücksetzen
+    document.getElementById("comment").value = "";
+    document.getElementById("dateOfReading").value = "";
+    // Dropdown für Zählertyp zurücksetzen (erste Option wählen)
+    document.getElementById("kindOfMeter").selectedIndex = 0;
+    document.getElementById("meterCount").value = "";
+    document.getElementById("meterId").value = "";
+    document.getElementById("substitute").value = "0";
+    // Lade bestehende Kunden für den aktuellen Benutzer in das Dropdown
+    loadCustomersForReadingModal();
+    // Optional: Hier kannst Du den Bereich "newCustomerFields" ein- oder ausblenden.
+  });
+
+  // --- Wenn der Zählertyp geändert wird, generiere automatisch eine meterId ---
+  const kindOfMeterSelect = document.getElementById("kindOfMeter");
+  kindOfMeterSelect.addEventListener("change", () => {
+    const selectedType = kindOfMeterSelect.value;
+    if (!selectedType) return;
+    // Zähle, wie viele Readings mit diesem Zählertyp bereits existieren (für den aktuellen User)
+    const count = allReadings.filter(r => r.kindOfMeter === selectedType).length;
+    const newNumber = String(count + 1).padStart(3, "0");
+    document.getElementById("meterId").value = selectedType + newNumber;
+  });
+
+  // --- Beim Speichern einer neuen Ablesung ---
   document.getElementById("saveReadingBtn").addEventListener("click", async () => {
     console.log("Neue Ablesung speichern geklickt!");
 
-    let readingId = document.getElementById("readingId").value.trim();
-    if (!readingId) {
-      readingId = undefined; // Server generiert eine UUID, falls nicht gesetzt
-    }
     const comment = document.getElementById("comment").value.trim();
-
-    // Kunden-Daten
-    let customerId = document.getElementById("customerId").value.trim();
-    if (!customerId) {
-      // Falls keine Kunden-ID eingegeben wurde, generiere eine neue UUID
-      customerId = generateUUID();
-    }
-    const customerFirstName = document.getElementById("customerFirstName").value.trim();
-    const customerLastName = document.getElementById("customerLastName").value.trim();
-    const customerBirthDate = document.getElementById("customerBirthDate").value.trim();
-    const customerGender = document.getElementById("customerGender").value;
-
-    // Validierung der Pflichtfelder für den Kunden
-    if (!customerFirstName || !customerLastName || !customerBirthDate) {
-      alert("Bitte füllen Sie alle Kundenfelder aus (Vorname, Nachname, Geburtsdatum).");
-      return;
-    }
-
     const dateOfReading = document.getElementById("dateOfReading").value.trim();
-    const kindOfMeter = document.getElementById("kindOfMeter").value.trim();
+    const kindOfMeter = document.getElementById("kindOfMeter").value;
     const meterCount = parseFloat(document.getElementById("meterCount").value);
     const meterId = document.getElementById("meterId").value.trim();
     const substituteInput = document.getElementById("substitute").value.trim();
-    // Konvertiere substitute in Boolean: "1" oder "true" (unabhängig von Groß-/Kleinschreibung) wird zu true, sonst false.
     const substitute = (substituteInput === "1" || substituteInput.toLowerCase() === "true");
 
-    // Validierung der Pflichtfelder für die Reading
-    if (!kindOfMeter || isNaN(meterCount) || !dateOfReading || !customerId) {
-      alert("Bitte die Pflichtfelder (Kunden-ID, Zählertyp, Zählerstand, Datum) korrekt ausfüllen.");
-      return;
-    }
-
-    const newReading = {
-      id: readingId,
-      comment: comment,
-      customer: {
+    // Ermitteln, ob ein bestehender Kunde ausgewählt wurde:
+    const customerSelect = document.getElementById("customerSelect");
+    let customer;
+    if (customerSelect && customerSelect.value) {
+      customer = allCustomers.find(c => c.id === customerSelect.value);
+    } else {
+      let customerId = document.getElementById("customerId").value.trim();
+      if (!customerId) {
+        customerId = generateUUID();
+      }
+      const customerFirstName = document.getElementById("customerFirstName").value.trim();
+      const customerLastName = document.getElementById("customerLastName").value.trim();
+      const customerBirthDate = document.getElementById("customerBirthDate").value.trim();
+      const customerGender = document.getElementById("customerGender").value;
+      if (!customerFirstName || !customerLastName || !customerBirthDate) {
+        alert("Bitte füllen Sie alle Kundenfelder aus (Vorname, Nachname, Geburtsdatum).");
+        return;
+      }
+      customer = {
         id: customerId,
         firstName: customerFirstName,
         lastName: customerLastName,
         birthDate: customerBirthDate,
-        gender: customerGender
-      },
+        gender: customerGender,
+        userId: localStorage.getItem("userId")
+      };
+    }
+
+    if (!kindOfMeter || isNaN(meterCount) || !dateOfReading) {
+      alert("Bitte füllen Sie alle Pflichtfelder für die Ablesung aus.");
+      return;
+    }
+
+    const newReading = {
+      comment: comment,
+      customer: customer,
       dateOfReading: dateOfReading,
       kindOfMeter: kindOfMeter,
       meterCount: meterCount,
-      meterId: meterId || "METER001",
+      meterId: meterId || (kindOfMeter + "001"),
       substitute: substitute
     };
 
     console.log("POST /readings =>", newReading);
-
     try {
       const response = await fetch(`${apiBaseUrl}/readings`, {
         method: "POST",
@@ -264,12 +259,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Klick auf den Filter-Button: => loadReadings(filterValue)
+  // Filter-Button: Läd die Readings anhand des ausgewählten Filters neu
   document.getElementById("filterButton").addEventListener("click", () => {
     const filterValue = document.getElementById("filterKindOfMeter").value.trim();
     loadReadings(filterValue);
   });
 
-  // Beim Laden der Seite: alle Readings ohne Filter
+  // Beim Laden der Seite: initiale Readings laden
   loadReadings();
 });
