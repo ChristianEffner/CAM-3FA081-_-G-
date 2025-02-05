@@ -8,20 +8,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // Kunden für den aktuell angemeldeten User laden
+  // Kunden für den aktuell angemeldeten User laden und Zähler aktualisieren
   fetch(`${apiBaseUrl}/customers?userId=${userId}`)
     .then((response) => response.json())
     .then((customers) => {
-      // Zeige die Anzahl der Kunden an
       document.getElementById("customerCount").textContent = customers.length;
     })
     .catch((error) => console.error("Error fetching customers:", error));
 
-  // Readings für den aktuell angemeldeten User laden
+  // Readings für den aktuell angemeldeten User laden und Zähler sowie Diagramme erstellen
   fetch(`${apiBaseUrl}/readings?userId=${userId}`)
     .then((response) => response.json())
     .then((readings) => {
-      // Zeige die Anzahl der Readings an
       document.getElementById("readingCount").textContent = readings.length;
       buildGenderChart(readings);
       buildReadingChart(readings);
@@ -52,9 +50,13 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: { position: "bottom" },
           title: { display: true, text: "Verteilung der Geschlechter in den Ablesungen" }
+        },
+        layout: {
+          padding: { top: 20, bottom: 20 }
         }
       }
     });
@@ -86,6 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
           title: { display: true, text: "Ablesungen nach Zählertyp" }
@@ -95,6 +98,9 @@ document.addEventListener("DOMContentLoaded", () => {
             beginAtZero: true,
             ticks: { precision: 0 }
           }
+        },
+        layout: {
+          padding: { top: 20, bottom: 20 }
         }
       }
     });

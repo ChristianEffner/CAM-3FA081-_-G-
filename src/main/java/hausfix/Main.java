@@ -35,7 +35,7 @@ public class Main {
         dbManager.openConnection(getProperties());
         System.out.println("Datenbankverbindung geöffnet.");
 
-        // 2) Jetzt Tabellen erstellen (das fehlte bisher!)
+        // 2) Jetzt Tabellen erstellen
         dbManager.createAllTables();
 
         // 3) Dann REST-Server starten
