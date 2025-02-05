@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function populateCustomerTable(customers) {
     const tableBody = document.querySelector("#customerTable tbody");
     if (!tableBody) return;
-
     tableBody.innerHTML = "";
     customers.forEach((customer) => {
       const row = document.createElement("tr");
@@ -43,11 +42,10 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       tableBody.appendChild(row);
     });
-
     attachEventListeners();
   }
 
-  // 3) Buttons (Edit, Delete, Details)
+  // 3) Event-Listener für die Buttons
   function attachEventListeners() {
     document.querySelectorAll(".btn-edit").forEach((btn) => {
       btn.addEventListener("click", handleEdit);
@@ -60,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 4) handleEdit
+  // 4) handleEdit (Kunde bearbeiten)
   async function handleEdit(event) {
     const id = event.target.dataset.id;
     try {
@@ -69,17 +67,11 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("Error retrieving customer. HTTP " + response.status);
       }
       const customer = await response.json();
-
-      // Felder füllen
       document.getElementById("editFirstName").value = customer.firstName;
       document.getElementById("editLastName").value = customer.lastName;
       document.getElementById("editBirthDate").value = customer.birthDate;
       document.getElementById("editGender").value = customer.gender;
-
-      // ID speichern
       document.getElementById("editCustomerForm").dataset.customerId = id;
-
-      // Modal öffnen
       const modal = new bootstrap.Modal(document.getElementById("editCustomerModal"));
       modal.show();
     } catch (error) {
@@ -97,12 +89,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const lastName = document.getElementById("editLastName").value.trim();
       const birthDate = document.getElementById("editBirthDate").value;
       const gender = document.getElementById("editGender").value;
-
       if (!firstName || !lastName || !birthDate || !gender) {
         showToast("Bitte alle Felder ausfüllen!", "warning");
         return;
       }
-
       try {
         const response = await fetch(`${apiBaseUrl}/customers`, {
           method: "PUT",
@@ -112,7 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!response.ok) {
           throw new Error("Error updating customer. HTTP " + response.status);
         }
-
         showToast("Kunde erfolgreich aktualisiert!", "success");
         bootstrap.Modal.getInstance(document.getElementById("editCustomerModal")).hide();
         loadCustomers();
@@ -126,13 +115,11 @@ document.addEventListener("DOMContentLoaded", () => {
   async function handleDelete(event) {
     const id = event.target.dataset.id;
     if (!confirm("Kunden wirklich löschen?")) return;
-
     try {
       const response = await fetch(`${apiBaseUrl}/customers/${id}`, { method: "DELETE" });
       if (!response.ok) {
         throw new Error("Error deleting customer. HTTP " + response.status);
       }
-
       showToast("Kunde erfolgreich gelöscht!", "success");
       loadCustomers();
     } catch (error) {
@@ -143,37 +130,32 @@ document.addEventListener("DOMContentLoaded", () => {
   // 7) handleDetails
   function handleDetails(event) {
     const id = event.target.dataset.id;
-    // Z.B. reading.html?readingId=...
-    // Oder customers/ID => detail page. Hier zeige ich, wie du Reading anzeigst.
     window.location.href = `reading.html?readingId=${id}`;
   }
 
-  // 8) Neuer Kunde
+  // 8) Neuer Kunde – WICHTIG: JSON-Objekt verschachteln unter "customer"
   const saveCustomerBtn = document.getElementById("saveCustomerBtn");
   if (saveCustomerBtn) {
     saveCustomerBtn.addEventListener("click", async () => {
-      console.log("Neuer Kunde Button geklickt!"); // Debug-Log
-
+      console.log("Neuer Kunde Button geklickt!");
       const firstName = document.getElementById("firstName").value.trim();
       const lastName = document.getElementById("lastName").value.trim();
       const birthDate = document.getElementById("birthDate").value;
       const gender = document.getElementById("gender").value;
-
       if (!firstName || !lastName || !birthDate || !gender) {
         showToast("Bitte alle Felder ausfüllen!", "warning");
         return;
       }
-
       try {
+        // Achtung: Wir verschachteln die Daten in ein Objekt "customer", weil der Server das erwartet!
         const response = await fetch(`${apiBaseUrl}/customers`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ firstName, lastName, birthDate, gender }),
+          body: JSON.stringify({ customer: { firstName, lastName, birthDate, gender } }),
         });
         if (!response.ok) {
           throw new Error("Error adding customer. HTTP " + response.status);
         }
-
         showToast("Kunde erfolgreich hinzugefügt!", "success");
         bootstrap.Modal.getInstance(document.getElementById("addCustomerModal")).hide();
         loadCustomers();
@@ -198,13 +180,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // 10) Toast-Helfer
   function showToast(message, type) {
     const toastContainer = document.getElementById("toast-container") || createToastContainer();
-
     const toast = document.createElement("div");
     toast.className = `toast toast-${type}`;
     toast.innerText = message;
-
     toastContainer.appendChild(toast);
-
     setTimeout(() => {
       toast.remove();
     }, 3000);
@@ -221,6 +200,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return container;
   }
 
-  // Initiales Laden
+  // Initiales Laden der Kunden
   loadCustomers();
 });

@@ -72,7 +72,9 @@ public class DatabaseConnection implements IDatabaseConnection {
                 + "meter_count DOUBLE,"
                 + "meter_id VARCHAR(255),"
                 + "substitute BOOLEAN,"
-                + "FOREIGN KEY (customer_id) REFERENCES Customer(id) ON DELETE SET NULL"
+                + "user_id BIGINT,"  // Hier wird die Spalte definiert
+                + "FOREIGN KEY (customer_id) REFERENCES Customer(id) ON DELETE SET NULL,"
+                + "FOREIGN KEY (user_id) REFERENCES `users`(id) ON DELETE SET NULL"
                 + ");";
 
         // Ausführung der SQL-Befehle

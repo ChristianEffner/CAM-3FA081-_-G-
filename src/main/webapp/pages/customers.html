@@ -61,7 +61,11 @@
 
     <section>
         <div class="d-flex justify-content-between mb-4">
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+            <button
+                    class="btn btn-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addCustomerModal"
+            >
                 <i class="fas fa-user-plus"></i> Neuen Kunden hinzufügen
             </button>
             <input
@@ -110,17 +114,45 @@
                 </div>
                 <div class="modal-body">
                     <form id="addCustomerForm">
+                        <!-- UserId: automatisch befüllt, nur lesen -->
+                        <div class="mb-3">
+                            <label for="userId" class="form-label"
+                            >User ID (zugehöriger Benutzer)</label
+                            >
+                            <input
+                                    type="text"
+                                    id="userId"
+                                    class="form-control"
+                                    readonly
+                            />
+                        </div>
+
                         <div class="mb-3">
                             <label for="firstName" class="form-label">Vorname</label>
-                            <input type="text" id="firstName" class="form-control" required />
+                            <input
+                                    type="text"
+                                    id="firstName"
+                                    class="form-control"
+                                    required
+                            />
                         </div>
                         <div class="mb-3">
                             <label for="lastName" class="form-label">Nachname</label>
-                            <input type="text" id="lastName" class="form-control" required />
+                            <input
+                                    type="text"
+                                    id="lastName"
+                                    class="form-control"
+                                    required
+                            />
                         </div>
                         <div class="mb-3">
                             <label for="birthDate" class="form-label">Geburtsdatum</label>
-                            <input type="date" id="birthDate" class="form-control" required />
+                            <input
+                                    type="date"
+                                    id="birthDate"
+                                    class="form-control"
+                                    required
+                            />
                         </div>
                         <div class="mb-3">
                             <label for="gender" class="form-label">Geschlecht</label>
@@ -172,19 +204,50 @@
                         <!-- Verstecktes Feld für Kunden-ID -->
                         <input type="hidden" id="editCustomerId" />
                         <div class="mb-3">
-                            <label for="editCustomerFirstName" class="form-label">Vorname</label>
-                            <input type="text" id="editCustomerFirstName" class="form-control" required />
+                            <label
+                                    for="editCustomerFirstName"
+                                    class="form-label"
+                            >Vorname</label
+                            >
+                            <input
+                                    type="text"
+                                    id="editCustomerFirstName"
+                                    class="form-control"
+                                    required
+                            />
                         </div>
                         <div class="mb-3">
-                            <label for="editCustomerLastName" class="form-label">Nachname</label>
-                            <input type="text" id="editCustomerLastName" class="form-control" required />
+                            <label
+                                    for="editCustomerLastName"
+                                    class="form-label"
+                            >Nachname</label
+                            >
+                            <input
+                                    type="text"
+                                    id="editCustomerLastName"
+                                    class="form-control"
+                                    required
+                            />
                         </div>
                         <div class="mb-3">
-                            <label for="editCustomerBirthDate" class="form-label">Geburtsdatum</label>
-                            <input type="date" id="editCustomerBirthDate" class="form-control" required />
+                            <label
+                                    for="editCustomerBirthDate"
+                                    class="form-label"
+                            >Geburtsdatum</label
+                            >
+                            <input
+                                    type="date"
+                                    id="editCustomerBirthDate"
+                                    class="form-control"
+                                    required
+                            />
                         </div>
                         <div class="mb-3">
-                            <label for="editCustomerGender" class="form-label">Geschlecht</label>
+                            <label
+                                    for="editCustomerGender"
+                                    class="form-label"
+                            >Geschlecht</label
+                            >
                             <select id="editCustomerGender" class="form-control">
                                 <option value="M">Männlich</option>
                                 <option value="W">Weiblich</option>
@@ -201,7 +264,11 @@
                     >
                         Abbrechen
                     </button>
-                    <button type="button" class="btn btn-primary" id="updateCustomerBtn">
+                    <button
+                            type="button"
+                            class="btn btn-primary"
+                            id="updateCustomerBtn"
+                    >
                         Speichern
                     </button>
                 </div>
@@ -218,11 +285,24 @@
 </footer>
 
 <!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+></script>
 <script src="../particles/particles.js"></script>
 <script src="../particles/particles-config.js"></script>
 <script src="../js/app.js"></script>
 <script src="../js/customers.js"></script>
 <script src="../js/pages.js"></script>
+
+<script>
+    // Beim Öffnen des "Neuer Kunde" Modals -> userId-Feld füllen
+    const addModalEl = document.getElementById("addCustomerModal");
+    addModalEl.addEventListener("show.bs.modal", () => {
+      // localStorage-UserId holen
+      const loggedUserId = localStorage.getItem("userId") || "";
+      document.getElementById("userId").value = loggedUserId;
+    });
+</script>
+
 </body>
 </html>

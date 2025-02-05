@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const apiBaseUrl = "http://localhost:8080"; // Passe ggf. an, falls dein Server eine andere URL hat
+  const apiBaseUrl = "http://localhost:8080"; // ggf. anpassen
   const loginForm = document.getElementById("loginForm");
   const loginError = document.getElementById("loginError");
 
@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
 
-    // Wir posten hier an /users/login (neuer Endpoint in CrudUser).
     const apiUrl = `${apiBaseUrl}/users/login`;
 
     try {
@@ -17,24 +16,19 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ username, password }) // { "username":"...", "password":"..." }
+        body: JSON.stringify({ username, password })
       });
 
       if (response.ok) {
-        // Login erfolgreich
+        const userData = await response.json();
         localStorage.setItem("isLoggedIn", "true");
-
-        // Falls du den User zurückbekommst, könntest du ihn so auslesen:
-        // const userData = await response.json();
-        // localStorage.setItem("currentUserId", userData.id); // nur als Beispiel
-
+        // Hier wird die korrekte userId aus dem Login-Response gespeichert
+        localStorage.setItem("userId", userData.id);
         window.location.href = "pages/dashboard.html"; // Weiterleitung
       } else if (response.status === 401) {
-        // Falscher User/PW
         loginError.innerText = "Benutzername oder Passwort falsch!";
         loginError.style.display = "block";
       } else {
-        // Irgendein anderer Fehler
         loginError.innerText = "Fehler: " + response.statusText;
         loginError.style.display = "block";
       }

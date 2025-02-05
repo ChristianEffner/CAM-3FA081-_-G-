@@ -1,138 +1,114 @@
-document.addEventListener("DOMContentLoaded", async function () {
-    // Überprüfung, ob der Nutzer eingeloggt ist
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (isLoggedIn !== "true") {
-        window.location.href = "../index.html";
-    }
+document.addEventListener("DOMContentLoaded", () => {
+  const apiBaseUrl = "http://localhost:8080";
+  const userId = localStorage.getItem("userId");
 
-    // Base URL für die API
-    const apiBaseUrl = "http://localhost:8080";
+  // Falls keine User-ID gefunden wird, leite zum Login um
+  if (!userId) {
+    window.location.href = "index.html";
+    return;
+  }
 
-    // Elemente für Statistiken
-    const customerCountElement = document.getElementById("customerCount");
-    const readingCountElement = document.getElementById("readingCount");
+  // Kunden abrufen und Zähler updaten
+  fetch(`${apiBaseUrl}/customers?userId=${userId}`)
+    .then((response) => response.json())
+    .then((customers) => {
+      document.getElementById("customerCount").textContent = customers.length;
+    })
+    .catch((error) => console.error("Error fetching customers:", error));
 
-    try {
-        // Kundenanzahl laden
-        const customersResponse = await fetch(`${apiBaseUrl}/customers`);
-        const customers = await customersResponse.json();
-        const customerCount = customers.length;
-        customerCountElement.textContent = customerCount;
+  // Ablesungen abrufen und Zähler sowie Charts aufbauen
+  fetch(`${apiBaseUrl}/readings?userId=${userId}`)
+    .then((response) => response.json())
+    .then((readings) => {
+      document.getElementById("readingCount").textContent = readings.length;
+      buildGenderChart(readings);
+      buildReadingChart(readings);
+    })
+    .catch((error) => console.error("Error fetching readings:", error));
 
-        // Ablesungsanzahl laden
-        const readingsResponse = await fetch(`${apiBaseUrl}/readings`);
-        const readings = await readingsResponse.json();
-        const readingCount = readings.length;
-        readingCountElement.textContent = readingCount;
+  // Erstellt einen Pie-Chart, der die Geschlechterverteilung der in den Ablesungen hinterlegten Kunden anzeigt
+  function buildGenderChart(readings) {
+    const genderCounts = {};
+    readings.forEach((r) => {
+      if (r.customer && r.customer.gender) {
+        const gender = r.customer.gender;
+        genderCounts[gender] = (genderCounts[gender] || 0) + 1;
+      }
+    });
 
-        // Diagramme initialisieren
-        initGenderChart(customers);
-        initReadingChart(readings);
-    } catch (error) {
-        console.error("Fehler beim Laden der Statistiken:", error);
-    }
+    const labels = Object.keys(genderCounts);
+    const data = Object.values(genderCounts);
 
-    // Kuchendiagramm für Geschlechterverteilung
-    function initGenderChart(customers) {
-        const genderCounts = customers.reduce(
-            (acc, customer) => {
-                acc[customer.gender] = (acc[customer.gender] || 0) + 1;
-                return acc;
-            },
-            { M: 0, W: 0, D: 0, U: 0 }
-        );
+    const ctx = document.getElementById("genderChart").getContext("2d");
+    new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Geschlechterverteilung",
+            data: data,
+            backgroundColor: ["#36A2EB", "#FF6384", "#FFCE56"],
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" },
+          title: {
+            display: true,
+            text: "Verteilung der Geschlechter in den Ablesungen",
+          },
+        },
+      },
+    });
+  }
 
-        const ctx = document.getElementById("genderChart").getContext("2d");
-        new Chart(ctx, {
-            type: "pie",
-            data: {
-                labels: ["Männlich", "Weiblich", "Divers", "Unbekannt"],
-                datasets: [
-                    {
-                        label: "Geschlechterverteilung",
-                        data: [
-                            genderCounts.M,
-                            genderCounts.W,
-                            genderCounts.D,
-                            genderCounts.U,
-                        ],
-                        backgroundColor: ["#007bff", "#dc3545", "#ffc107", "#6c757d"],
-                    },
-                ],
-            },
-            options: {
-                plugins: {
-                    legend: {
-                        position: "bottom",
-                    },
-                },
-            },
-        });
-    }
+  // Erstellt einen Bar-Chart, der die Anzahl der Ablesungen pro Zählertyp (kindOfMeter) zeigt
+  function buildReadingChart(readings) {
+    const meterTypeCounts = {};
+    readings.forEach((r) => {
+      if (r.kindOfMeter) {
+        const meterType = r.kindOfMeter;
+        meterTypeCounts[meterType] = (meterTypeCounts[meterType] || 0) + 1;
+      }
+    });
 
-    // Linien- und Flächendiagramm für Ablesungen pro Monat
-    function initReadingChart(readings) {
-        const monthlyCounts = readings.reduce((acc, reading) => {
-            const month = new Date(reading.dateOfReading).getMonth();
-            acc[month] = (acc[month] || 0) + 1;
-            return acc;
-        }, {});
+    const labels = Object.keys(meterTypeCounts);
+    const data = Object.values(meterTypeCounts);
 
-        const months = [
-            "Januar",
-            "Februar",
-            "März",
-            "April",
-            "Mai",
-            "Juni",
-            "Juli",
-            "August",
-            "September",
-            "Oktober",
-            "November",
-            "Dezember",
-        ];
-
-        const data = months.map((_, i) => monthlyCounts[i] || 0);
-
-        const ctx = document.getElementById("readingChart").getContext("2d");
-        new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: months,
-                datasets: [
-                    {
-                        label: "Ablesungen",
-                        data: data,
-                        backgroundColor: "rgba(0, 123, 255, 0.2)",
-                        borderColor: "#007bff",
-                        fill: true,
-                        tension: 0.4,
-                    },
-                ],
-            },
-            options: {
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: "Monate",
-                        },
-                    },
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: "Anzahl der Ablesungen",
-                        },
-                    },
-                },
-                plugins: {
-                    legend: {
-                        position: "top",
-                    },
-                },
-            },
-        });
-    }
+    const ctx = document.getElementById("readingChart").getContext("2d");
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Anzahl Ablesungen",
+            data: data,
+            backgroundColor: "rgba(75, 192, 192, 0.5)",
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          title: {
+            display: true,
+            text: "Ablesungen nach Zählertyp",
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 },
+          },
+        },
+      },
+    });
+  }
 });

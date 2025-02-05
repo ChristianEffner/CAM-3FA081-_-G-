@@ -2,10 +2,10 @@ package hausfix.CRUD;
 
 import hausfix.Database.DatabaseConnection;
 import hausfix.entities.User;
-
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +19,7 @@ public class CrudUser {
     @GET
     public Response getAllUsers() {
         try {
-            String query = "SELECT * FROM `users`"; // Klein
+            String query = "SELECT * FROM `users`";
             List<User> users = new ArrayList<>();
 
             try (var statement = databaseConnection.connection.createStatement();
@@ -73,17 +73,23 @@ public class CrudUser {
     @POST
     public Response createUser(User user) {
         try {
-            // Insert in kleingeschriebene Tabelle
             String query = "INSERT INTO `users` (username, password) VALUES (?, ?)";
-
-            try (var preparedStatement = databaseConnection.connection.prepareStatement(query)) {
+            try (var preparedStatement = databaseConnection.connection.prepareStatement(query, java.sql.Statement.RETURN_GENERATED_KEYS)) {
                 preparedStatement.setString(1, user.getUsername());
                 preparedStatement.setString(2, user.getPassword());
                 preparedStatement.executeUpdate();
-            }
 
+                try (ResultSet rs = preparedStatement.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        long generatedId = rs.getLong(1);
+                        user.setId(generatedId);
+                    }
+                }
+            }
+            // Aus Sicherheitsgründen das Passwort aus der Rückgabe entfernen
+            user.setPassword(null);
             return Response.status(Response.Status.CREATED)
-                    .entity("Benutzer erfolgreich erstellt").build();
+                    .entity(user).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("Fehler beim Erstellen des Benutzers: " + e.getMessage()).build();
@@ -138,12 +144,6 @@ public class CrudUser {
         }
     }
 
-    /**
-     * Neuer Endpoint für Login:
-     * Wir empfangen ein JSON-Objekt {"username":"...","password":"..."}
-     * und prüfen, ob der Nutzer existiert und das Passwort passt.
-     * Gibt 200 OK bei Erfolg, 401 Unauthorized sonst.
-     */
     @POST
     @Path("/login")
     public Response login(User user) {
@@ -151,8 +151,6 @@ public class CrudUser {
             String username = user.getUsername();
             String password = user.getPassword();
 
-            // Ganz simple Prüfung: SELECT * FROM `users` WHERE username=? AND password=?
-            // (In der Realität: Passwörter gehasht + salt)
             String sql = "SELECT * FROM `users` WHERE username = ? AND password = ? LIMIT 1";
 
             try (var preparedStatement = databaseConnection.connection.prepareStatement(sql)) {
@@ -161,15 +159,12 @@ public class CrudUser {
 
                 try (var rs = preparedStatement.executeQuery()) {
                     if (rs.next()) {
-                        // Erfolg => 200 OK
                         User foundUser = new User();
                         foundUser.setId(rs.getLong("id"));
                         foundUser.setUsername(rs.getString("username"));
-                        // foundUser.setPassword(rs.getString("password")); // i.d.R. nicht zurückgeben
-
+                        // Passwort nicht zurückgeben
                         return Response.ok(foundUser).build();
                     } else {
-                        // Nichts gefunden => 401 Unauthorized
                         return Response.status(Response.Status.UNAUTHORIZED)
                                 .entity("Login fehlgeschlagen: Benutzername oder Passwort inkorrekt.")
                                 .build();
