@@ -133,39 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = `reading.html?readingId=${id}`;
   }
 
-  // 8) Neuer Kunde – WICHTIG: JSON-Objekt verschachteln unter "customer"
-  const saveCustomerBtn = document.getElementById("saveCustomerBtn");
-  if (saveCustomerBtn) {
-    saveCustomerBtn.addEventListener("click", async () => {
-      console.log("Neuer Kunde Button geklickt!");
-      const firstName = document.getElementById("firstName").value.trim();
-      const lastName = document.getElementById("lastName").value.trim();
-      const birthDate = document.getElementById("birthDate").value;
-      const gender = document.getElementById("gender").value;
-      if (!firstName || !lastName || !birthDate || !gender) {
-        showToast("Bitte alle Felder ausfüllen!", "warning");
-        return;
-      }
-      try {
-        // Achtung: Wir verschachteln die Daten in ein Objekt "customer", weil der Server das erwartet!
-        const response = await fetch(`${apiBaseUrl}/customers`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ customer: { firstName, lastName, birthDate, gender } }),
-        });
-        if (!response.ok) {
-          throw new Error("Error adding customer. HTTP " + response.status);
-        }
-        showToast("Kunde erfolgreich hinzugefügt!", "success");
-        bootstrap.Modal.getInstance(document.getElementById("addCustomerModal")).hide();
-        loadCustomers();
-      } catch (error) {
-        showToast("Fehler beim Hinzufügen: " + error.message, "error");
-      }
-    });
-  }
-
-  // 9) Suche
+  // 8) Suche
   const searchInput = document.getElementById("searchCustomer");
   if (searchInput) {
     searchInput.addEventListener("input", (event) => {
@@ -177,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 10) Toast-Helfer
+  // 9) Toast-Helfer
   function showToast(message, type) {
     const toastContainer = document.getElementById("toast-container") || createToastContainer();
     const toast = document.createElement("div");
