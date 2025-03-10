@@ -1,4 +1,5 @@
 package hausfix.entities;
+
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import hausfix.enums.KindOfMeter;
 import hausfix.interfaces.ICustomer;
@@ -20,8 +21,14 @@ public class Reading implements IReading {
     private String meterID;
     private Boolean substitude;
 
-    public Reading(UUID id, String comment, Customer customer, LocalDate dateOfReading, KindOfMeter kindOfMeter, Double meterCount, String meterID, Boolean substitude) {
+    // Neues Feld für die User-ID
+    private Long userId;
 
+    /**
+     * Konstruktor mit userId.
+     */
+    public Reading(UUID id, String comment, Customer customer, LocalDate dateOfReading,
+                   KindOfMeter kindOfMeter, Double meterCount, String meterID, Boolean substitude, Long userId) {
         this.id = id;
         this.comment = comment;
         this.customer = customer;
@@ -30,52 +37,57 @@ public class Reading implements IReading {
         this.meterCount = meterCount;
         this.meterID = meterID;
         this.substitude = substitude;
+        this.userId = userId;
     }
 
+    /**
+     * Alter Konstruktor ohne userId – setzt userId auf null.
+     */
+    public Reading(UUID id, String comment, Customer customer, LocalDate dateOfReading,
+                   KindOfMeter kindOfMeter, Double meterCount, String meterID, Boolean substitude) {
+        this(id, comment, customer, dateOfReading, kindOfMeter, meterCount, meterID, substitude, null);
+    }
+
+    /**
+     * Standardkonstruktor (wichtig für Jackson).
+     */
     public Reading() {
-        // Standardkonstruktor, der erforderlich ist, um Jackson zu ermöglichen, das Objekt zu erstellen
+        // Default-Konstruktor
     }
 
     @Override
     public void setComment(String comment) {
         this.comment = comment;
-
     }
 
     @Override
     public void setCustomer(ICustomer customer) {
         this.customer = customer;
-
     }
 
     @Override
     public void setDateOfReading(LocalDate dateOfReading) {
         this.dateOfReading = dateOfReading;
-
     }
 
     @Override
     public void setKindOfMeter(KindOfMeter kindOfMeter) {
         this.kindOfMeter = kindOfMeter;
-
     }
 
     @Override
     public void setMeterCount(Double meterCount) {
         this.meterCount = meterCount;
-
     }
 
     @Override
     public void setMeterId(String meterId) {
         this.meterID = meterId;
-
     }
 
     @Override
     public void setSubstitute(Boolean substitute) {
         this.substitude = substitute;
-
     }
 
     @Override
@@ -127,5 +139,14 @@ public class Reading implements IReading {
     @Override
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    // Neuer Getter und Setter für userId
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

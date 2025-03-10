@@ -27,7 +27,8 @@ class customersTest {
 
     @BeforeAll
     void setUp() throws SQLException {
-        DatabaseConnection dbManager = DatabaseConnection.getInstance();
+        // Verwende die Instanzvariable, nicht eine lokale Variable
+        dbManager = DatabaseConnection.getInstance();
         connection = dbManager.openConnection(getProperties());
         crudCustomer = new CrudCustomer();
         customerResource = new customers(crudCustomer);
@@ -35,7 +36,6 @@ class customersTest {
 
     @AfterAll
     void tearDown() throws SQLException {
-        DatabaseConnection dbManager = DatabaseConnection.getInstance();
         dbManager.closeConnection();
     }
 
@@ -48,7 +48,7 @@ class customersTest {
         newCustomer.setBirthDate(LocalDate.of(1990, 1, 1));
         newCustomer.setGender(Gender.M);
 
-        // REST-Objekt mit dem neuen Kunden
+        // REST-Objekt mit dem neuen Kunden (RestCustomer wird hier als einfacher Wrapper angenommen)
         Response response = customerResource.createCustomer(new RestCustomer(newCustomer));
 
         // Überprüfen der Antwort
@@ -64,7 +64,7 @@ class customersTest {
 
     @Test
     void testUpdateCustomer() throws SQLException {
-        // Erst einen Kunden erstellen
+        // Zunächst einen Kunden erstellen
         Customer existingCustomer = new Customer();
         existingCustomer.setId(UUID.randomUUID());
         existingCustomer.setFirstName("Jane");
@@ -74,7 +74,7 @@ class customersTest {
 
         crudCustomer.addNewCustomer(existingCustomer);
 
-        // Aktualisieren des Kunden
+        // Den Kunden aktualisieren
         existingCustomer.setFirstName("Janet");
         Response response = customerResource.updateCustomer(existingCustomer);
 
@@ -82,7 +82,7 @@ class customersTest {
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         assertEquals("Customer updated", response.getEntity());
 
-        // Überprüfen, ob die Änderungen in der Datenbank vorgenommen wurden
+        // Überprüfen, ob die Änderungen in der DB vorgenommen wurden
         Customer updatedCustomer = crudCustomer.readCustomer(existingCustomer.getId());
         assertNotNull(updatedCustomer);
         assertEquals("Janet", updatedCustomer.getFirstName());
@@ -90,20 +90,20 @@ class customersTest {
 
     @Test
     void testGetAllCustomers() throws SQLException {
-        // Kunden erstellen
+        // Erstelle zwei Kunden
         Customer customer1 = new Customer(UUID.randomUUID(), "Alice", "Smith", LocalDate.of(1995, 3, 22), Gender.W);
         Customer customer2 = new Customer(UUID.randomUUID(), "Bob", "Brown", LocalDate.of(1987, 7, 15), Gender.M);
         crudCustomer.addNewCustomer(customer1);
         crudCustomer.addNewCustomer(customer2);
 
-        // Abrufen aller Kunden
-        Response response = customerResource.getAllCustomers();
+        // Abrufen aller Kunden (ohne User-Filter)
+        Response response = customerResource.getAllCustomers(null);
 
         // Überprüfen der Antwort
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         assertNotNull(response.getEntity());
 
-        // Überprüfen der Liste von Kunden
+        // Überprüfen, ob die Liste mindestens 2 Elemente enthält
         @SuppressWarnings("unchecked")
         List<Customer> customers = (List<Customer>) response.getEntity();
         assertTrue(customers.size() >= 2);
@@ -115,7 +115,7 @@ class customersTest {
         Customer customer = new Customer(UUID.randomUUID(), "Charlie", "Johnson", LocalDate.of(1992, 11, 5), Gender.M);
         crudCustomer.addNewCustomer(customer);
 
-        // Kunden abrufen
+        // Den Kunden über die Resource abrufen
         Response response = customerResource.getCustomerById(customer.getId().toString());
 
         // Überprüfen der Antwort
@@ -131,59 +131,57 @@ class customersTest {
         Customer customer = new Customer(UUID.randomUUID(), "Diana", "Evans", LocalDate.of(1990, 6, 10), Gender.W);
         crudCustomer.addNewCustomer(customer);
 
-        // Kunden löschen
+        // Den Kunden über die Resource löschen
         Response response = customerResource.deleteCustomer(customer.getId().toString());
 
         // Überprüfen der Antwort
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 
-        // Sicherstellen, dass der Kunde gelöscht wurde
+        // Sicherstellen, dass der Kunde aus der Datenbank gelöscht wurde
         Customer deletedCustomer = crudCustomer.readCustomer(customer.getId());
         assertNull(deletedCustomer);
     }
 
     @Test
     void testCreateCustomerWithInvalidData() throws SQLException {
-        // Erstellen eines neuen Kunden mit ungültigen Daten (z.B. leerem Vornamen)
+        // Erstelle einen neuen Kunden mit ungültigen Daten (leerer Vorname und Nachname)
         Customer invalidCustomer = new Customer();
         invalidCustomer.setFirstName("");
         invalidCustomer.setLastName("");
         invalidCustomer.setBirthDate(LocalDate.of(1990, 1, 1));
         invalidCustomer.setGender(Gender.M);
 
-        // REST-Objekt mit ungültigen Daten
+        // Versuche, den Kunden über die Resource anzulegen
         Response response = customerResource.createCustomer(new RestCustomer(invalidCustomer));
 
-        // Überprüfen der Antwort (erwartet Fehlerantwort)
+        // Überprüfe, dass BAD_REQUEST zurückgegeben wird
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
     }
 
     @Test
     void testGetCustomerByIdNotFound() throws SQLException {
-        // Eine nicht existierende ID verwenden
+        // Verwende eine zufällige (nicht existierende) ID
         UUID nonExistentId = UUID.randomUUID();
         Response response = customerResource.getCustomerById(nonExistentId.toString());
 
-        // Überprüfen der Antwort: sollte 404 zurückgeben
+        // Überprüfe, dass 404 zurückgegeben wird
         assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
-        assertEquals("Customer not found", response.getEntity());  // Prüft die Fehlermeldung
+        assertEquals("Customer not found", response.getEntity());
     }
 
     @Test
     void testCreateCustomerWithExistingId() throws SQLException {
-        // Erstelle einen Kunden mit einer bekannten ID
+        // Erstelle einen Kunden mit einer bestimmten ID
         UUID existingId = UUID.randomUUID();
         Customer existingCustomer = new Customer(existingId, "Alice", "Smith", LocalDate.of(1995, 3, 22), Gender.W);
         crudCustomer.addNewCustomer(existingCustomer);
 
-        // Versuche, einen neuen Kunden mit der gleichen ID zu erstellen
+        // Versuche, einen neuen Kunden mit derselben ID anzulegen
         Customer newCustomer = new Customer(existingId, "Bob", "Jones", LocalDate.of(1990, 7, 12), Gender.M);
         Response response = customerResource.createCustomer(new RestCustomer(newCustomer));
 
-        // Überprüfen der Antwort: sollte 409 Conflict zurückgeben
+        // Überprüfe, dass ein Konflikt (409) zurückgegeben wird
         assertEquals(Response.Status.CONFLICT.getStatusCode(), response.getStatus());
         assertEquals("Customer with this ID already exists", response.getEntity());
     }
-
-
 }

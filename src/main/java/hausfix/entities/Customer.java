@@ -1,4 +1,5 @@
 package hausfix.entities;
+
 import hausfix.enums.Gender;
 import hausfix.interfaces.ICustomer;
 import java.time.LocalDate;
@@ -12,8 +13,10 @@ public class Customer implements ICustomer {
     private LocalDate birthday;
     private Gender gender;
 
-    public Customer(UUID id, String firstName, String lastName, LocalDate birthday, Gender gender) {
+    // NEU: Welcher User besitzt diesen Customer?
+    private Long userId;
 
+    public Customer(UUID id, String firstName, String lastName, LocalDate birthday, Gender gender) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -21,10 +24,17 @@ public class Customer implements ICustomer {
         this.gender = gender;
     }
 
-    public Customer() {
+    public Customer() {}
 
+    // Getter/Setter für userId
+    public Long getUserId() {
+        return userId;
+    }
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
+    // Implementierung des ICustomer-Interfaces & andere Felder
     @Override
     public void setFirstName(String firstName) {
         this.firstName = firstName;
@@ -65,7 +75,6 @@ public class Customer implements ICustomer {
         return gender;
     }
 
-
     @Override
     public UUID getId() {
         return id;
@@ -74,6 +83,5 @@ public class Customer implements ICustomer {
     @Override
     public void setId(UUID id) {
         this.id = id;
-
     }
 }
