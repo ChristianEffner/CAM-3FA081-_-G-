@@ -53,7 +53,7 @@ public class CrudCustomer {
     }
 
     /**
-     * Liest alle Customers (ohne Filter).
+     * Liest alle Customers (ohne Filter)...
      */
     public List<Customer> readAllCustomers() {
         String selectCustomer = "SELECT * FROM customer;";

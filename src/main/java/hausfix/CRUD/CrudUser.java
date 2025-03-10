@@ -36,7 +36,7 @@ public class CrudUser {
             return Response.ok(users).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Fehler beim Abrufen der Benutzer: " + e.getMessage()).build();
+                    .entity("Fehler beim Abrufen der Benutzer!: " + e.getMessage()).build();
         }
     }
 

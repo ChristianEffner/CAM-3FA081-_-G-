@@ -24,7 +24,7 @@ public class readingsTest {
     private static Connection connection;
     private static CrudReading crudReading;
     private static CrudCustomer crudCustomer;
-    private static readings readingsResource;
+    private static Readings readingsResource;
 
     @BeforeAll
     public static void setUp() throws SQLException {
@@ -35,7 +35,7 @@ public class readingsTest {
 
         crudReading = new CrudReading();
         crudCustomer = new CrudCustomer();
-        readingsResource = new readings();
+        readingsResource = new Readings();
     }
 
     @AfterAll
@@ -205,7 +205,7 @@ public class readingsTest {
         // => 1.Param = null (keine Customer-UUID),
         //    2. & 3. Param = null (kein Start/End),
         //    4. Param = null (kein KindOfMeter).
-        Response response = readingsResource.getAllReadings(null, null, null, null);
+        Response response = readingsResource.getAllReadings(null, null, null, null,null);
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         assertNotNull(response.getEntity(), "Should return a list of all readings.");
     }
@@ -218,7 +218,7 @@ public class readingsTest {
         // -> 1.Param = null => kein Customer,
         //    2. & 3. = null => kein Datumsfilter,
         //    4. = "INVALID_KIND"
-        Response response = readingsResource.getAllReadings(null, null, null, "INVALID_KIND");
+        Response response = readingsResource.getAllReadings(null, null, null, null, "INVALID_KIND");
 
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         String errorMsg = (String) response.getEntity();
@@ -235,7 +235,7 @@ public class readingsTest {
         // => 1. Param = null => kein Customer
         // => 2. & 3. Param => "2050-01-01" und "2049-12-31"
         // => 4. Param => null
-        Response response = readingsResource.getAllReadings(null, "2050-01-01", "2049-12-31", null);
+        Response response = readingsResource.getAllReadings(null,null, "2050-01-01", "2049-12-31", null);
 
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         String errorMsg = (String) response.getEntity();

@@ -52,7 +52,7 @@ public class CrudReading extends DatabaseConnection {
             customerObj.setUserId(activeUserId);
         }
 
-        // Prüfe, ob der Kunde bereits existiert
+        // Prüfe, ob der Kunde bereits existiert.
         Customer existingCustomer = crudCustomer.readCustomer(customerObj.getId());
         if (existingCustomer == null) {
             try {
