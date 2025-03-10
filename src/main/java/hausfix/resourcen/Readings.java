@@ -1,14 +1,10 @@
 package hausfix.resourcen;
-import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import hausfix.CRUD.CrudCustomer;
 import hausfix.CRUD.CrudReading;
-import hausfix.entities.Customer;
 import hausfix.entities.Reading;
 import hausfix.enums.KindOfMeter;
 import jakarta.ws.rs.*;
@@ -16,7 +12,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 @Path("/readings")
-public class readings {
+public class Readings {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)

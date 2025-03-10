@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.UUID;
 
 @Path("/customers")
-public class customers {
+public class Customers {
 
-    public customers(CrudCustomer crudCustomer) {}
-    public customers() {}
+    public Customers(CrudCustomer crudCustomer) {}
+    public Customers() {}
 
     // === POST /customers => Neues Customer-Objekt anlegen
     @POST

@@ -40,7 +40,7 @@ public class DatabaseConnection implements IDatabaseConnection {
 
     @Override
     public void createAllTables() {
-        // Wenn keine Connection, Abbruch
+        // Wenn keine Connection, Abbruch.
         if (connection == null) {
             System.out.println("createAllTables() aufgerufen, aber connection == null. Abbruch.");
             return;

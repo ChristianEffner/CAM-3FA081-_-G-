@@ -12,7 +12,7 @@ import jakarta.ws.rs.core.Response;
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class users {
+public class Users {
 
     private CrudUser crudUser = new CrudUser();
 

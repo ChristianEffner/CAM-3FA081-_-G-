@@ -8,7 +8,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 
 @Path("/setupDB")
-public class setupDB {
+public class SetupDB {
 
     @DELETE
     public Response resetDatabase() {

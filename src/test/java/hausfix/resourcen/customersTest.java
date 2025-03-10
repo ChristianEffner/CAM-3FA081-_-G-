@@ -23,7 +23,7 @@ class customersTest {
     private DatabaseConnection dbManager;
     private Connection connection;
     private CrudCustomer crudCustomer;
-    private customers customerResource;
+    private Customers customerResource;
 
     @BeforeAll
     void setUp() throws SQLException {
@@ -31,7 +31,7 @@ class customersTest {
         dbManager = DatabaseConnection.getInstance();
         connection = dbManager.openConnection(getProperties());
         crudCustomer = new CrudCustomer();
-        customerResource = new customers(crudCustomer);
+        customerResource = new Customers(crudCustomer);
     }
 
     @AfterAll
