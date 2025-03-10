@@ -1,5 +1,6 @@
 package hausfix.Database;
 
+import hausfix.entities.User;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 
@@ -7,6 +8,7 @@ import java.sql.*;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class DatabaseConnectionTest {
@@ -16,7 +18,7 @@ class DatabaseConnectionTest {
 
     @BeforeEach
     void setUp() {
-        // Singleton-Instanz holen
+        // Hole die Singleton-Instanz
         dbConnection = DatabaseConnection.getInstance();
         // Typische H2-InMemory-Properties
         properties = new Properties();
@@ -36,7 +38,6 @@ class DatabaseConnectionTest {
     // -------------------------------------------------------------
     @Test
     void testOpenConnectionSuccess() {
-        // Sollte klappen, da "jdbc:h2:mem:..."
         assertDoesNotThrow(() -> dbConnection.openConnection(properties));
         assertNotNull(dbConnection.connection,
                 "Die Connection darf nicht null sein, wenn openConnection() erfolgreich war");
@@ -49,8 +50,6 @@ class DatabaseConnectionTest {
         invalidProps.setProperty("db.url", "jdbc:h2:file:INVALID_PATH/xyz");
         invalidProps.setProperty("db.user", "sa");
         invalidProps.setProperty("db.pw", "");
-
-        // Catch-Block in openConnection() -> wird nur geloggt, connection bleibt null
         dbConnection.openConnection(invalidProps);
         assertNull(dbConnection.connection,
                 "Connection sollte null sein, wenn openConnection() fehlschlägt");
@@ -69,6 +68,7 @@ class DatabaseConnectionTest {
     @Test
     void testCreateAllTablesConnectionNull() {
         // connection gar nicht erst öffnen -> connection bleibt null
+        dbConnection.connection = null;
         assertDoesNotThrow(() -> dbConnection.createAllTables(),
                 "Bei null-Connection wird nur Abbruch gemeldet, kein Fehler");
     }
@@ -76,23 +76,13 @@ class DatabaseConnectionTest {
     // Mock, damit createStatement() bzw. statement.execute(...) eine SQLException wirft
     @Test
     void testCreateAllTablesSQLException() throws SQLException {
-        // 1) Normal öffnen
         dbConnection.openConnection(properties);
-
-        // 2) Spy/Mocks bauen
         Connection spyConnection = Mockito.spy(dbConnection.connection);
         Statement mockStatement = Mockito.mock(Statement.class);
-
-        // 3) createStatement() soll unser Mock zurückgeben
         when(spyConnection.createStatement()).thenReturn(mockStatement);
-        // 4) Wenn execute(...) aufgerufen wird, fliegt absichtlich eine SQLException
         doThrow(new SQLException("Fake SQL Error in createAllTables"))
                 .when(mockStatement).execute(anyString());
-
-        // 5) Spy injizieren
         dbConnection.connection = spyConnection;
-
-        // 6) Aufruf -> die SQLException wird gefangen, e.printStackTrace() im Code
         assertDoesNotThrow(() -> dbConnection.createAllTables(),
                 "Die SQLException wird intern gefangen und nur geloggt");
     }
@@ -110,6 +100,7 @@ class DatabaseConnectionTest {
     @Test
     void testTruncateAllTablesConnectionNull() {
         // Connection nicht öffnen, also null
+        dbConnection.connection = null;
         assertDoesNotThrow(() -> dbConnection.truncateAllTables(),
                 "truncateAllTables() bricht nur ab, wenn connection null ist");
     }
@@ -117,48 +108,29 @@ class DatabaseConnectionTest {
     // Testet den "nicht H2"-Zweig via Mock (TRUNCATE anstatt DELETE)
     @Test
     void testTruncateAllTablesNonH2() throws Exception {
-        // 1) Verbindung öffnen
         dbConnection.openConnection(properties);
-
-        // 2) Mock für Connection, MetaData, Statement
         Connection mockConn = Mockito.mock(Connection.class);
         DatabaseMetaData mockMeta = Mockito.mock(DatabaseMetaData.class);
         Statement mockStmt = Mockito.mock(Statement.class);
-
         when(mockConn.getMetaData()).thenReturn(mockMeta);
         // Behaupten, es sei "MySQL" statt "H2"
         when(mockMeta.getDatabaseProductName()).thenReturn("MySQL");
         when(mockConn.createStatement()).thenReturn(mockStmt);
-
-        // 3) injizieren
         dbConnection.connection = mockConn;
-
-        // 4) Aufruf -> sollte in den if-Zweig gehen (TRUNCATE TABLE)
         dbConnection.truncateAllTables();
-
-        // 5) verifizieren, dass das Mock-Statement TRUNCATE aufgerufen hat
         verify(mockStmt).executeUpdate("TRUNCATE TABLE READING;");
         verify(mockStmt).executeUpdate("TRUNCATE TABLE CUSTOMER;");
     }
 
     @Test
     void testTruncateAllTablesSQLException() throws SQLException {
-        // 1) Öffnen
         dbConnection.openConnection(properties);
-
-        // 2) Spy auf Connection
         Connection spyConn = Mockito.spy(dbConnection.connection);
         Statement mockStmt = Mockito.mock(Statement.class);
-
-        // 3) createStatement -> mock
         when(spyConn.createStatement()).thenReturn(mockStmt);
         doThrow(new SQLException("Fake SQL Error in truncateAllTables"))
                 .when(mockStmt).executeUpdate(anyString());
-
-        // 4) injizieren
         dbConnection.connection = spyConn;
-
-        // 5) Aufruf -> sollte catch block erwischen
         assertDoesNotThrow(() -> dbConnection.truncateAllTables());
     }
 
@@ -174,27 +146,20 @@ class DatabaseConnectionTest {
 
     @Test
     void testRemoveAllTablesConnectionNull() {
-        // connection gar nicht öffnen -> null
+        dbConnection.connection = null;
         assertDoesNotThrow(() -> dbConnection.removeAllTables(),
                 "removeAllTables() bricht nur ab, kein Fehler");
     }
 
     @Test
     void testRemoveAllTablesSQLException() throws SQLException {
-        // 1) Öffnen
         dbConnection.openConnection(properties);
-
-        // 2) Spy
         Connection spyConn = Mockito.spy(dbConnection.connection);
         Statement mockStmt = Mockito.mock(Statement.class);
-
         when(spyConn.createStatement()).thenReturn(mockStmt);
         doThrow(new SQLException("Fake SQL Error in removeAllTables"))
                 .when(mockStmt).executeUpdate(anyString());
-
         dbConnection.connection = spyConn;
-
-        // catch-Block wird intern ausgelöst, test bleibt grün
         assertDoesNotThrow(() -> dbConnection.removeAllTables());
     }
 
@@ -213,8 +178,76 @@ class DatabaseConnectionTest {
     void testCloseConnectionTwice() {
         dbConnection.openConnection(properties);
         dbConnection.closeConnection();
-        // Nochmal schließen => "Connection is already closed"
+        // Zweiter Aufruf => "Connection is already closed" wird ausgegeben, aber kein Fehler
         dbConnection.closeConnection();
-        // kein Fehler, else-Zweig wird erreicht
+    }
+
+    // Neuer Test: Exception beim Schließen der Connection
+    @Test
+    void testCloseConnectionException() throws SQLException {
+        dbConnection.openConnection(properties);
+        // Erzeuge einen Spy, der beim close() absichtlich eine SQLException wirft
+        Connection spyConn = Mockito.spy(dbConnection.connection);
+        doThrow(new SQLException("Close failed")).when(spyConn).close();
+        dbConnection.connection = spyConn;
+        assertDoesNotThrow(() -> dbConnection.closeConnection(),
+                "closeConnection() sollte Exceptions intern abfangen");
+        // Da close() fehlschlägt, bleibt die Connection erhalten
+        assertNotNull(dbConnection.connection, "Connection sollte erhalten bleiben, wenn close() fehlschlägt");
+    }
+
+    // -------------------------------------------------------------
+    // 6) SAVE ENTITY
+    // -------------------------------------------------------------
+    @Test
+    void testSaveUserEntitySuccess() throws SQLException {
+        dbConnection.openConnection(properties);
+        dbConnection.createAllTables();
+        // Leere Tabelle users (H2: DELETE)
+        try (Statement stmt = dbConnection.connection.createStatement()) {
+            stmt.executeUpdate("DELETE FROM `users`");
+            dbConnection.connection.commit();
+        }
+        User user = new User("saveTestUser", "saveTestPass");
+        dbConnection.save(user);
+        // Überprüfe, ob der Benutzer in der DB gespeichert wurde
+        try (PreparedStatement stmt = dbConnection.connection.prepareStatement("SELECT * FROM `users` WHERE username = ?")) {
+            stmt.setString(1, "saveTestUser");
+            try (ResultSet rs = stmt.executeQuery()) {
+                assertTrue(rs.next(), "User sollte in der Datenbank gespeichert worden sein.");
+                assertEquals("saveTestUser", rs.getString("username"));
+                assertEquals("saveTestPass", rs.getString("password"));
+            }
+        }
+    }
+
+    @Test
+    void testSaveUnknownEntity() {
+        dbConnection.openConnection(properties);
+        // Aufruf mit einer unbekannten Entität (z. B. Integer)
+        assertDoesNotThrow(() -> dbConnection.save(123),
+                "Aufruf von save() mit einer unbekannten Entität sollte keinen Fehler werfen.");
+    }
+
+    // Neuer Test: save() mit fehlender Connection
+    @Test
+    void testSaveNoConnection() {
+        dbConnection.connection = null;
+        User user = new User("noConnUser", "noConnPass");
+        assertDoesNotThrow(() -> dbConnection.save(user),
+                "save() sollte ohne Connection keinen Fehler werfen.");
+    }
+
+    // Neuer Test: Exception in save() bei User (simulate SQLException beim prepareStatement)
+    @Test
+    void testSaveUserEntitySQLException() throws SQLException {
+        dbConnection.openConnection(properties);
+        dbConnection.createAllTables();
+        User user = new User("failUser", "failPass");
+        Connection spyConn = Mockito.spy(dbConnection.connection);
+        when(spyConn.prepareStatement(anyString())).thenThrow(new SQLException("Fake exception"));
+        dbConnection.connection = spyConn;
+        assertDoesNotThrow(() -> dbConnection.save(user),
+                "save() sollte Exceptions intern abfangen, wenn prepareStatement fehlschlägt");
     }
 }

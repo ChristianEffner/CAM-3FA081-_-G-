@@ -12,6 +12,7 @@ import org.junit.jupiter.api.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +33,17 @@ public class readingsTest {
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
         connection = dbManager.openConnection(getProperties());
         assertNotNull(connection, "Database connection should not be null.");
+
+        // Dummy-User einfügen, um den Foreign-Key in der Customer-Tabelle zu befriedigen.
+        // Falls weitere Spalten (z.B. name) als NOT NULL definiert sind, müssten diese hier ebenfalls gesetzt werden.
+        try (Statement stmt = connection.createStatement()) {
+            // INSERT IGNORE vermeidet einen Fehler, wenn der Dummy-User schon existiert.
+            stmt.executeUpdate("INSERT IGNORE INTO users (id) VALUES (1)");
+            // Bei deaktiviertem Auto-Commit explizit committen:
+            connection.commit();
+        } catch (SQLException e) {
+            System.out.println("Dummy user with id 1 already exists or could not be inserted: " + e.getMessage());
+        }
 
         crudReading = new CrudReading();
         crudCustomer = new CrudCustomer();
@@ -116,7 +128,7 @@ public class readingsTest {
                 true
         );
 
-        // Erst anlegen
+        // Zuerst anlegen
         readingsResource.createReading(reading);
 
         // Kommentar ändern
@@ -152,7 +164,7 @@ public class readingsTest {
         Response response = readingsResource.deleteReading(readingId.toString());
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 
-        // Dein deleteReadingById(...) gibt immer null zurück => also hier:
+        // deleteReadingById(...) gibt immer null zurück => also hier:
         Reading deletedReading = (Reading) response.getEntity();
         assertNull(deletedReading, "deleteReadingById(...) returns null by design => resource also returns null");
     }
@@ -196,16 +208,16 @@ public class readingsTest {
                 "We expect 404 if that reading does not exist in DB.");
     }
 
-
+    // -------------------------------------------------------------------------
+    // 5) GET All Readings
+    // -------------------------------------------------------------------------
     /**
      * Normaler GET-all ohne Filter:
      */
     @Test
     public void testGetAllReadingsNoParams() {
-        // => 1.Param = null (keine Customer-UUID),
-        //    2. & 3. Param = null (kein Start/End),
-        //    4. Param = null (kein KindOfMeter).
-        Response response = readingsResource.getAllReadings(null, null, null, null,null);
+        // Alle Parameter null: userId, customer, start, end, kindOfMeter
+        Response response = readingsResource.getAllReadings(null, null, null, null, null);
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         assertNotNull(response.getEntity(), "Should return a list of all readings.");
     }
@@ -215,14 +227,11 @@ public class readingsTest {
      */
     @Test
     public void testGetAllReadingsInvalidKindOfMeter() {
-        // -> 1.Param = null => kein Customer,
-        //    2. & 3. = null => kein Datumsfilter,
-        //    4. = "INVALID_KIND"
+        // userId und customer null, start und end null, kindOfMeter = "INVALID_KIND"
         Response response = readingsResource.getAllReadings(null, null, null, null, "INVALID_KIND");
 
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         String errorMsg = (String) response.getEntity();
-        // Die readings.java schickt -> "Invalid kindOfMeter value. Please provide a valid value."
         assertTrue(errorMsg.contains("Invalid kindOfMeter value"),
                 "We expect an error message about invalid kindOfMeter.");
     }
@@ -232,10 +241,8 @@ public class readingsTest {
      */
     @Test
     public void testGetAllReadingsStartAfterEnd() {
-        // => 1. Param = null => kein Customer
-        // => 2. & 3. Param => "2050-01-01" und "2049-12-31"
-        // => 4. Param => null
-        Response response = readingsResource.getAllReadings(null,null, "2050-01-01", "2049-12-31", null);
+        // userId und customer null, start = "2050-01-01" und end = "2049-12-31", kindOfMeter null
+        Response response = readingsResource.getAllReadings(null, null, "2050-01-01", "2049-12-31", null);
 
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         String errorMsg = (String) response.getEntity();
@@ -271,21 +278,15 @@ public class readingsTest {
         );
         readingsResource.createReading(reading);
 
-        // 3) Nun filtern wir GENAU nach randomCustomerId (== 1. Param)
-        //    rest = null => kein Datumsfilter, kein kindOfMeter
-        Response response = readingsResource.getAllReadings(
-                randomCustomerId, // ACHTUNG => Hier jetzt NICHT .toString()
-                null,
-                null,
-                null
-        );
+        // 3) Filtern nach customer (userId bleibt null)
+        Response response = readingsResource.getAllReadings(null, randomCustomerId, null, null, null);
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 
         @SuppressWarnings("unchecked")
         List<Reading> filteredReadings = (List<Reading>) response.getEntity();
         assertNotNull(filteredReadings, "Should return a list of matched readings.");
 
-        // Prüfen
+        // Prüfen, ob unser Reading gefunden wird.
         boolean found = filteredReadings.stream()
                 .anyMatch(r -> readingId.equals(r.getId()));
         assertTrue(found, "We should find our newly created reading by matching customer ID filter.");
@@ -296,15 +297,10 @@ public class readingsTest {
      */
     @Test
     public void testGetAllReadingsWithCustomerFilterNoMatch() {
-        // x-beliebige UUID, die wir nicht angelegt haben
+        // Zufällige Customer-ID, die nicht angelegt wurde.
         UUID randomCustomerId = UUID.randomUUID();
 
-        Response response = readingsResource.getAllReadings(
-                randomCustomerId, // 1. param = "unknown" Customer
-                null,
-                null,
-                null
-        );
+        Response response = readingsResource.getAllReadings(null, randomCustomerId, null, null, null);
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 
         @SuppressWarnings("unchecked")
@@ -313,5 +309,24 @@ public class readingsTest {
 
         assertTrue(filteredReadings.isEmpty(),
                 "If no reading has this random customerId, the result should be empty.");
+    }
+
+    /**
+     * Test: Filtern nach UserId (Long)
+     * Da der userId-Filter verwendet wird, sollten andere Filter ignoriert werden.
+     * In diesem Test gehen wir davon aus, dass es keine Readings für die gegebene userId gibt.
+     */
+    @Test
+    public void testGetAllReadingsWithUserIdFilter() {
+        Long userId = 100L;
+
+        // Erwartung: Da keine Reading explizit mit userId verbunden wurde, sollte eine leere Liste zurückgegeben werden.
+        Response response = readingsResource.getAllReadings(userId, null, null, null, null);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+
+        @SuppressWarnings("unchecked")
+        List<Reading> readingsForUser = (List<Reading>) response.getEntity();
+        assertNotNull(readingsForUser, "Should return a list (even if empty) for userId filter.");
+        assertTrue(readingsForUser.isEmpty(), "No readings should be returned for userId 100L.");
     }
 }
