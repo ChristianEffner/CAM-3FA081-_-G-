@@ -27,7 +27,7 @@ public class Main {
 
         UUID customerId = UUID.fromString("1e160c14-84ac-476f-8e76-4053293c68c5");
         UUID readingId = UUID.fromString("5d50da4d-39fb-41d8-ad85-07ee956bd340");
-        Customer customer1 = new Customer(customerId, "L", "K", LocalDate.of(2000, 11, 20), Gender.D);
+        Customer customer1 = new Customer(customerId, "Christian", "Effner", LocalDate.of(2000, 11, 20), Gender.D);
         Reading reading1 = new Reading(readingId, "new test1", customer1, LocalDate.of(2005, 1, 1), KindOfMeter.HEIZUNG, 18.0, "test1", Boolean.FALSE);
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
         CrudCustomer crudCustomerManager = new CrudCustomer();
