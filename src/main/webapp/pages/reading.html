@@ -140,16 +140,9 @@
                 </div>
                 <div class="modal-body">
                     <form id="addReadingForm">
-                        <p class="text-muted">Die Reading-ID wird automatisch vergeben.</p>
-                        <div class="mb-3">
-                            <label for="comment" class="form-label">Kommentar</label>
-                            <textarea id="comment" class="form-control"></textarea>
-                        </div>
-
                         <!-- Kunde -->
                         <h6>Kunde</h6>
                         <div class="mb-3">
-                            <label for="customerSelect" class="form-label">Bestehender Kunde</label>
                             <select id="customerSelect" class="form-control">
                                 <option value="">-- Neuer Kunde --</option>
                                 <!-- Dynamisch befüllt via JS -->
@@ -211,6 +204,12 @@
                         <div class="mb-3">
                             <label for="substitute" class="form-label">Substitute</label>
                             <input type="number" id="substitute" class="form-control" value="0" />
+                        </div>
+
+                        <!-- Kommentar -->
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Kommentar</label>
+                            <textarea id="comment" class="form-control"></textarea>
                         </div>
                     </form>
                 </div>
