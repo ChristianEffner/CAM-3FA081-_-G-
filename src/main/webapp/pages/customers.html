@@ -16,6 +16,16 @@
     />
     <!-- Custom CSS (falls nötig) -->
     <link rel="stylesheet" href="../css/pages.css" />
+
+    <!-- Inline-Style für gekürzte ID-Spalte -->
+    <style>
+        .short-id-col {
+          max-width: 150px;       /* nach Bedarf anpassen */
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+    </style>
 </head>
 <body>
 <!-- Sidebar -->
@@ -58,6 +68,7 @@
     </header>
 
     <section>
+        <!-- Obere Leiste: Button links und Suchfeld mit grauem Button rechts -->
         <div class="d-flex justify-content-between mb-4">
             <button
                     class="btn btn-primary"
@@ -66,18 +77,23 @@
             >
                 <i class="fas fa-user-plus"></i> Neuen Kunden hinzufügen
             </button>
-            <input
-                    type="text"
-                    id="searchCustomer"
-                    class="form-control w-50"
-                    placeholder="Nach Name oder ID suchen"
-            />
+            <div class="input-group w-50">
+                <input
+                        type="text"
+                        id="searchCustomer"
+                        class="form-control"
+                        placeholder="Nach Name oder ID suchen"
+                />
+                <button class="btn btn-secondary" type="button">
+                    Filter anwenden
+                </button>
+            </div>
         </div>
 
         <table class="table table-striped table-hover">
             <thead class="bg-primary text-white">
             <tr>
-                <th>ID</th>
+                <th class="short-id-col">ID</th>
                 <th>Vorname</th>
                 <th>Nachname</th>
                 <th>Geburtsdatum</th>
@@ -86,7 +102,8 @@
             </tr>
             </thead>
             <tbody id="customerTableBody">
-            <!-- Inhalte werden dynamisch geladen -->
+            <!-- Inhalte werden dynamisch geladen (JS) -->
+            <!-- Dort einfach <td class="short-id-col" title="volle ID">gekürzte ID</td> -->
             </tbody>
         </table>
     </section>
@@ -275,8 +292,6 @@
     </div>
 </div>
 
-
-
 <!-- Scripts -->
 <script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
@@ -289,11 +304,9 @@
     // Beim Öffnen des "Neuer Kunde" Modals -> userId-Feld füllen
     const addModalEl = document.getElementById("addCustomerModal");
     addModalEl.addEventListener("show.bs.modal", () => {
-      // localStorage-UserId holen
       const loggedUserId = localStorage.getItem("userId") || "";
       document.getElementById("userId").value = loggedUserId;
     });
 </script>
-
 </body>
 </html>

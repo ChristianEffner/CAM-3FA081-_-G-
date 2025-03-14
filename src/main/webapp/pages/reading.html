@@ -10,6 +10,16 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/pages.css" />
+
+    <!-- Inline-Style für gekürzte ID-Spalte -->
+    <style>
+        .short-id-col {
+          max-width: 150px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+    </style>
 </head>
 <body>
 <!-- Sidebar -->
@@ -37,17 +47,24 @@
 <!-- Content -->
 <div id="content">
     <header>
-        <h1>Reading / Ablesungsverwaltung</h1>
+        <h1>Ablesungsverwaltung</h1>
         <p>Übersicht und Verwaltung aller Ablesungen.</p>
     </header>
 
     <section>
         <div class="d-flex justify-content-between mb-4">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addReadingModal">
-                <i class="fas fa-plus"></i> Neue Ablesung
+                <i class="fas fa-plus"></i> Neue Ablesung hinzufügen
             </button>
-            <div>
-                <input type="text" id="filterKindOfMeter" class="form-control d-inline-block w-auto" placeholder="Filter (z. B. WASSER)" />
+
+            <!-- Einfache Filter-/Suchleiste -->
+            <div class="input-group w-50">
+                <input
+                        type="text"
+                        id="filterKindOfMeter"
+                        class="form-control"
+                        placeholder="Nach Typ oder ID suchen..."
+                />
                 <button class="btn btn-secondary" id="filterButton">Filter anwenden</button>
             </div>
         </div>
@@ -55,7 +72,7 @@
         <table class="table table-striped table-hover">
             <thead class="bg-primary text-white">
             <tr>
-                <th>ID</th>
+                <th class="short-id-col">ID</th>
                 <th>Kunde</th>
                 <th>Datum</th>
                 <th>Zählertyp</th>
@@ -65,6 +82,7 @@
             </thead>
             <tbody id="readingTableBody">
             <!-- Dynamisch befüllte Inhalte -->
+            <!-- ID kommt hierhin, also <td class="short-id-col" title="..."></td> -->
             </tbody>
         </table>
     </section>
@@ -83,7 +101,6 @@
                         <input type="hidden" id="editReadingId" />
                         <div class="mb-3">
                             <label for="editKindOfMeter" class="form-label">Zählertyp</label>
-                            <!-- Dropdown für Zählertyp -->
                             <select id="editKindOfMeter" class="form-control" required>
                                 <option value="">-- Bitte auswählen --</option>
                                 <option value="STROM">STROM</option>
@@ -123,24 +140,23 @@
                 </div>
                 <div class="modal-body">
                     <form id="addReadingForm">
-                        <!-- Hinweis: Reading-ID wird automatisch vergeben -->
                         <p class="text-muted">Die Reading-ID wird automatisch vergeben.</p>
                         <div class="mb-3">
                             <label for="comment" class="form-label">Kommentar</label>
                             <textarea id="comment" class="form-control"></textarea>
                         </div>
 
-                        <!-- Kunden-Daten -->
+                        <!-- Kunde -->
                         <h6>Kunde</h6>
-                        <!-- Dropdown für bestehende Kunden -->
                         <div class="mb-3">
                             <label for="customerSelect" class="form-label">Bestehender Kunde</label>
                             <select id="customerSelect" class="form-control">
                                 <option value="">-- Neuer Kunde --</option>
-                                <!-- Dynamisch befüllt via JavaScript -->
+                                <!-- Dynamisch befüllt via JS -->
                             </select>
                         </div>
-                        <!-- Neue Kundendaten (wird nur verwendet, wenn kein bestehender Kunde ausgewählt ist) -->
+
+                        <!-- Neue-Kunde-Felder -->
                         <div id="newCustomerFields">
                             <div class="mb-3">
                                 <label for="customerId" class="form-label">Kunden-ID (optional)</label>
@@ -212,5 +228,20 @@
 <script src="../js/app.js"></script>
 <script src="../js/reading.js"></script>
 <script src="../js/pages.js"></script>
+
+<script>
+    // Zeige/Verstecke Felder "Neuer Kunde", wenn ein bestehender Kunde gewählt wird.
+    const customerSelect = document.getElementById("customerSelect");
+    const newCustomerFields = document.getElementById("newCustomerFields");
+
+    customerSelect.addEventListener("change", () => {
+      if (customerSelect.value) {
+        newCustomerFields.classList.add("d-none");
+      } else {
+        newCustomerFields.classList.remove("d-none");
+      }
+    });
+</script>
+
 </body>
 </html>
