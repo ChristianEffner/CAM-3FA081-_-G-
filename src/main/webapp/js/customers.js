@@ -5,19 +5,17 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentCustomer = null; // Für das Bearbeiten
 
   /**
-   * Lädt Kunden via GET /customers.
-   * Optional: Schickt userId als QueryParam, damit nur eigene Datensätze zurückkommen.
+   * Lädt Kunden via GET /customers
+   * (Mit userId-Filter, sodass nur Kunden des aktuellen Users kommen.)
    */
   async function loadCustomers() {
     console.log("Lade Kunden ...");
     try {
-      const userId = localStorage.getItem("userId"); // kommt vom Login
-      let url = `${apiBaseUrl}/customers`;
-      if (userId) {
-        // Filter nur eigene Kunden
-        url += `?userId=${userId}`;
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        throw new Error("Keine userId im LocalStorage gefunden!");
       }
-
+      let url = `${apiBaseUrl}/customers?userId=${userId}`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(
@@ -26,7 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const customers = await response.json();
       console.log("Kunden empfangen:", customers);
-
       renderCustomers(customers);
     } catch (error) {
       console.error("Error loading customers:", error);
@@ -50,8 +47,15 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${customer.birthDate}</td>
         <td>${customer.gender}</td>
         <td>
-          <button class="btn btn-warning btn-edit" data-id="${customer.id}">Bearbeiten</button>
-          <button class="btn btn-danger btn-delete" data-id="${customer.id}">Löschen</button>
+          <button class="btn btn-warning btn-edit" data-id="${customer.id}">
+            Bearbeiten
+          </button>
+          <button class="btn btn-danger btn-delete" data-id="${customer.id}">
+            Löschen
+          </button>
+          <button class="btn btn-info btn-details" data-id="${customer.id}">
+            Daten
+          </button>
         </td>
       `;
       tableBody.appendChild(row);
@@ -60,6 +64,9 @@ document.addEventListener("DOMContentLoaded", () => {
     attachTableEventListeners();
   }
 
+  /**
+   * Tabellen-Buttons verkabeln.
+   */
   function attachTableEventListeners() {
     document
       .querySelectorAll(".btn-edit")
@@ -67,10 +74,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document
       .querySelectorAll(".btn-delete")
       .forEach((btn) => btn.addEventListener("click", handleDelete));
+    document
+      .querySelectorAll(".btn-details")
+      .forEach((btn) => btn.addEventListener("click", handleDetails));
   }
 
   /**
-   * Bearbeiten
+   * Kunde bearbeiten (Modal öffnen, Felder füllen)
    */
   async function handleEdit(event) {
     const id = event.target.dataset.id;
@@ -88,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       currentCustomer = customer;
 
-      // Felder im Modal
+      // Felder im Modal belegen
       document.getElementById("editCustomerId").value = customer.id || "";
       document.getElementById("editCustomerFirstName").value =
         customer.firstName || "";
@@ -111,73 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Klick auf "Speichern" in Bearbeiten-Modal => PUT /customers
-   */
-  document
-    .getElementById("updateCustomerBtn")
-    .addEventListener("click", async () => {
-      console.log("Update-Button geklickt!");
-      if (!currentCustomer) {
-        alert("Kein Kunde zum Bearbeiten geladen!");
-        return;
-      }
-
-      const id = document.getElementById("editCustomerId").value.trim();
-      const firstName = document
-        .getElementById("editCustomerFirstName")
-        .value.trim();
-      const lastName = document
-        .getElementById("editCustomerLastName")
-        .value.trim();
-      const birthDate = document
-        .getElementById("editCustomerBirthDate")
-        .value.trim();
-      const gender = document.getElementById("editCustomerGender").value;
-
-      // userId hier weiterhin aus localStorage (oder du könntest es genauso aus einem Hidden Feld holen)
-      const userId = localStorage.getItem("userId");
-
-      if (!id || !firstName || !lastName || !birthDate) {
-        alert("Bitte alle Pflichtfelder ausfüllen.");
-        return;
-      }
-
-      // updaten
-      currentCustomer.id = id;
-      currentCustomer.firstName = firstName;
-      currentCustomer.lastName = lastName;
-      currentCustomer.birthDate = birthDate;
-      currentCustomer.gender = gender;
-      currentCustomer.userId = userId ? parseInt(userId) : null;
-
-      console.log("PUT /customers =>", currentCustomer);
-      try {
-        const response = await fetch(`${apiBaseUrl}/customers`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(currentCustomer),
-        });
-        if (!response.ok) {
-          throw new Error(
-            "Fehler beim Aktualisieren (Status: " + response.status + ")"
-          );
-        }
-
-        alert("Kunde erfolgreich aktualisiert!");
-        bootstrap.Modal.getInstance(
-          document.getElementById("editCustomerModal")
-        ).hide();
-
-        currentCustomer = null;
-        loadCustomers();
-      } catch (error) {
-        console.error("Error updating customer:", error);
-        alert("Fehler beim Aktualisieren: " + error.message);
-      }
-    });
-
-  /**
-   * Löschen => DELETE /customers/{id}
+   * Kunde löschen => DELETE /customers/{id}
    */
   async function handleDelete(event) {
     const id = event.target.dataset.id;
@@ -203,72 +147,144 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Neuen Kunden speichern => POST /customers
+   * "Daten"-Button => Weiterleitung, z.B. reading.html?readingId=XYZ
    */
-  document
-    .getElementById("saveCustomerBtn")
-    .addEventListener("click", async () => {
-      console.log("Neuen Kunde Button geklickt!");
+  function handleDetails(event) {
+    const id = event.target.dataset.id;
+    console.log("Details geklickt, ID =", id);
+    // Weiterleiten, z. B. zu reading.html
+    window.location.href = `reading.html?readingId=${id}`;
+  }
 
-      // Aus dem Formular
-      const userIdField = document.getElementById("userId").value.trim();
-      const firstName = document.getElementById("firstName").value.trim();
-      const lastName = document.getElementById("lastName").value.trim();
-      const birthDate = document.getElementById("birthDate").value.trim();
-      const gender = document.getElementById("gender").value;
+  /**
+   * Klick auf "Speichern" im Bearbeiten-Modal => PUT /customers
+   */
+  const updateBtn = document.getElementById("updateCustomerBtn");
+  updateBtn.addEventListener("click", async () => {
+    console.log("Update-Button geklickt!");
+    if (!currentCustomer) {
+      alert("Kein Kunde zum Bearbeiten geladen!");
+      return;
+    }
 
-      if (!firstName || !lastName || !birthDate) {
-        alert("Bitte alle Felder ausfüllen.");
-        return;
+    const id = document.getElementById("editCustomerId").value.trim();
+    const firstName = document
+      .getElementById("editCustomerFirstName")
+      .value.trim();
+    const lastName = document
+      .getElementById("editCustomerLastName")
+      .value.trim();
+    const birthDate = document
+      .getElementById("editCustomerBirthDate")
+      .value.trim();
+    const gender = document.getElementById("editCustomerGender").value;
+    const userId = localStorage.getItem("userId");
+
+    if (!id || !firstName || !lastName || !birthDate) {
+      alert("Bitte alle Pflichtfelder ausfüllen.");
+      return;
+    }
+
+    currentCustomer.id = id;
+    currentCustomer.firstName = firstName;
+    currentCustomer.lastName = lastName;
+    currentCustomer.birthDate = birthDate;
+    currentCustomer.gender = gender;
+    currentCustomer.userId = userId ? parseInt(userId) : null;
+
+    console.log("PUT /customers =>", currentCustomer);
+    try {
+      const response = await fetch(`${apiBaseUrl}/customers`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(currentCustomer),
+      });
+      if (!response.ok) {
+        throw new Error(
+          "Fehler beim Aktualisieren (Status: " + response.status + ")"
+        );
       }
+      alert("Kunde erfolgreich aktualisiert!");
 
-      // Body: Wir schicken das "customer" Objekt an /customers
-      const requestBody = {
-        customer: {
-          firstName,
-          lastName,
-          birthDate,
-          gender,
-          // userId aus dem Feld
-          userId: userIdField ? parseInt(userIdField) : null,
-        },
-      };
+      // Modal schließen
+      bootstrap.Modal.getInstance(
+        document.getElementById("editCustomerModal")
+      ).hide();
 
-      console.log("POST /customers =>", requestBody);
-      try {
-        const response = await fetch(`${apiBaseUrl}/customers`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody),
-        });
-        if (!response.ok) {
-          throw new Error(
-            "Fehler beim Speichern (Status: " + response.status + ")"
-          );
-        }
-        alert("Kunde erfolgreich gespeichert!");
+      currentCustomer = null;
+      loadCustomers();
+    } catch (error) {
+      console.error("Error updating customer:", error);
+      alert("Fehler beim Aktualisieren: " + error.message);
+    }
+  });
 
-        bootstrap.Modal.getInstance(
-          document.getElementById("addCustomerModal")
-        ).hide();
-        loadCustomers();
-      } catch (error) {
-        console.error("Error saving customer:", error);
-        alert("Fehler beim Speichern des Kunden: " + error.message);
+  /**
+   * Klick auf "Speichern" im "Neuer Kunde"-Modal => POST /customers
+   */
+  const saveBtn = document.getElementById("saveCustomerBtn");
+  saveBtn.addEventListener("click", async () => {
+    console.log("Neuen Kunde Button geklickt!");
+    const userIdField = document.getElementById("userId").value.trim();
+    const firstName = document.getElementById("firstName").value.trim();
+    const lastName = document.getElementById("lastName").value.trim();
+    const birthDate = document.getElementById("birthDate").value.trim();
+    const gender = document.getElementById("gender").value;
+
+    if (!firstName || !lastName || !birthDate) {
+      alert("Bitte alle Felder ausfüllen.");
+      return;
+    }
+
+    const requestBody = {
+      customer: {
+        firstName,
+        lastName,
+        birthDate,
+        gender,
+        userId: userIdField ? parseInt(userIdField) : null,
+      },
+    };
+
+    console.log("POST /customers =>", requestBody);
+    try {
+      const response = await fetch(`${apiBaseUrl}/customers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+      if (!response.ok) {
+        throw new Error(
+          "Fehler beim Speichern (Status: " + response.status + ")"
+        );
       }
-    });
+      alert("Kunde erfolgreich gespeichert!");
 
-  // Client-seitige Suche
-  document
-    .getElementById("searchCustomer")
-    .addEventListener("input", (event) => {
+      // Modal schließen
+      bootstrap.Modal.getInstance(
+        document.getElementById("addCustomerModal")
+      ).hide();
+      loadCustomers();
+    } catch (error) {
+      console.error("Error saving customer:", error);
+      alert("Fehler beim Speichern des Kunden: " + error.message);
+    }
+  });
+
+  /**
+   * Suche (client-seitig)
+   */
+  const searchInput = document.getElementById("searchCustomer");
+  if (searchInput) {
+    searchInput.addEventListener("input", (event) => {
       const searchValue = event.target.value.toLowerCase();
       document.querySelectorAll("#customerTableBody tr").forEach((row) => {
         const rowText = row.textContent.toLowerCase();
         row.style.display = rowText.includes(searchValue) ? "" : "none";
       });
     });
+  }
 
-  // Start: Kunden laden
+  // Beim Laden der Seite: Kunden laden
   loadCustomers();
 });
