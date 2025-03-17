@@ -59,15 +59,10 @@
 
     <section class="w-75">
         <h3>Export Kunden</h3>
-        <button class="btn btn-primary mb-2" onclick="exportCustomers('json')">
-            Export JSON
-        </button>
-        <button class="btn btn-primary mb-2" onclick="exportCustomers('xml')">
-            Export XML
-        </button>
-        <button class="btn btn-primary mb-2" onclick="exportCustomers('csv')">
-            Export CSV
-        </button>
+        <button id="exportJsonBtn" class="btn btn-primary mb-2">Export JSON</button>
+        <button id="exportXmlBtn" class="btn btn-primary mb-2">Export XML</button>
+        <button id="exportCsvBtn" class="btn btn-primary mb-2">Export CSV</button>
+
 
         <hr/>
 
@@ -78,55 +73,15 @@
             <option value="xml">XML</option>
             <option value="json">JSON</option>
         </select>
-        <button class="btn btn-success ms-2" onclick="importCustomers()">Import</button>
+        <button id="importBtn" class="btn btn-success ms-2">Import</button>
+
     </section>
 </div>
 <!-- Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../js/pages.js"></script>
+<script src="../js/importexport.js"></script>
 
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-      if (localStorage.getItem("isLoggedIn") !== "true") {
-        window.location.href = "../index.html";
-      }
-    });
-
-    const apiBaseUrl = "http://localhost:8080";
-
-    // Export-Funktion
-    function exportCustomers(format) {
-      // Z.B. GET /export/customers?format=csv
-      window.open(\`${apiBaseUrl}/export/customers?format=\${format}\`);
-    }
-
-    // Import-Funktion
-    async function importCustomers() {
-      const fileInput = document.getElementById("fileInput");
-      if (!fileInput.files.length) {
-        alert("Bitte eine Datei auswählen.");
-        return;
-      }
-      const format = document.getElementById("importFormat").value;
-      const file = fileInput.files[0];
-
-      const formData = new FormData();
-      formData.append("file", file);
-
-      try {
-        const response = await fetch(\`${apiBaseUrl}/import/customers?format=\${format}\`, {
-          method: "POST",
-          body: formData
-        });
-        if (!response.ok) {
-          throw new Error("Import fehlgeschlagen, HTTP " + response.status);
-        }
-        alert("Import erfolgreich!");
-      } catch (err) {
-        alert("Fehler: " + err.message);
-      }
-    }
-</script>
 </body>
 </html>
