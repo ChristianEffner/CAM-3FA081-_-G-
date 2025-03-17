@@ -26,6 +26,14 @@ public class Customer implements ICustomer {
 
     public Customer() {}
 
+    public Customer(UUID id, String firstName, String lastName, LocalDate birthday, Gender gender, Long userId) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.birthday = birthday;
+        this.gender = gender;
+        this.userId = userId;
+    }
     // Getter/Setter für userId
     public Long getUserId() {
         return userId;
