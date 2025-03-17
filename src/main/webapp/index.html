@@ -16,18 +16,6 @@
     />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/login.css" />
-    <style>
-        /* Optional: Sanfte Transition für aufklappbares Formular */
-        #registerForm {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease;
-        }
-        /* Wenn wir es einblenden, setzen wir max-height hoch genug für beide Felder + Button */
-        #registerForm.show {
-            max-height: 500px;
-        }
-    </style>
 </head>
 <body class="d-flex justify-content-center align-items-center vh-100 bg-light">
 <div id="particles-js"></div>
@@ -74,54 +62,6 @@
 
         <hr />
 
-        <!-- Link, um Registrierung anzuzeigen -->
-        <p class="text-center mb-1">
-            Kein Account?
-            <a href="#" id="showRegisterLink">Hier registrieren</a>
-        </p>
-
-        <!-- REGISTRIER-FORMULAR (initial ausgeblendet) -->
-        <form id="registerForm" class="mt-3">
-            <h4 class="mb-3">Registrieren</h4>
-            <div class="mb-3">
-                <label for="regUsername" class="form-label">Benutzername</label>
-                <input
-                        type="text"
-                        class="form-control"
-                        id="regUsername"
-                        placeholder="Benutzername"
-                        required
-                />
-            </div>
-            <div class="mb-3">
-                <label for="regPassword" class="form-label">Passwort</label>
-                <input
-                        type="password"
-                        class="form-control"
-                        id="regPassword"
-                        placeholder="Passwort"
-                        required
-                />
-            </div>
-            <div class="d-grid">
-                <button type="submit" class="btn btn-success">Registrieren</button>
-            </div>
-            <div
-                    id="registerError"
-                    class="text-danger mt-3 text-center"
-                    style="display: none;"
-            >
-                Fehler beim Registrieren
-            </div>
-            <div
-                    id="registerSuccess"
-                    class="text-success mt-3 text-center"
-                    style="display: none;"
-            >
-                Registrierung erfolgreich! Du kannst dich jetzt einloggen.
-            </div>
-        </form>
-
     </div>
 </div>
 
@@ -132,17 +72,5 @@
 <script src="particles/particles-config-fast.js"></script>
 <!-- Login & Register Scripts -->
 <script src="js/login.js"></script>
-<script src="js/register.js"></script>
-
-<script>
-    // Toggle-Logik fürs Registrierformular
-    document.getElementById("showRegisterLink").addEventListener("click", function(e) {
-      e.preventDefault();
-      const regForm = document.getElementById("registerForm");
-      // Toggle-Klasse 'show' für Transition
-      regForm.classList.toggle("show");
-    });
-</script>
-
 </body>
 </html>
