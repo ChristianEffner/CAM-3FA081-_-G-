@@ -1,29 +1,26 @@
 document.addEventListener("DOMContentLoaded", () => {
   const apiBaseUrl = "http://localhost:8080";
 
-  // Hilfsfunktion zur Erzeugung einer UUID (RFC4122 Version 4)
-  function generateUUID() {
-    let d = new Date().getTime();
-    let d2 = (performance && performance.now && (performance.now() * 1000)) || 0;
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      let r = Math.random() * 16;
-      if (d > 0) {
-        r = (d + r) % 16 | 0;
-        d = Math.floor(d / 16);
-      } else {
-        r = (d2 + r) % 16 | 0;
-        d2 = Math.floor(d2 / 16);
-      }
-      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  // Globale Variablen
+  let currentReading = null;
+  let allReadings = [];
+  let allCustomers = [];
+
+  // (A) URL-Parameter auslesen
+  const urlParams = new URLSearchParams(window.location.search);
+  const preSearchValue = urlParams.get("customerSearch") || "";
+
+  // Lokale Filterfunktion
+  function applyLocalFilter(searchText) {
+    const tableBody = document.getElementById("readingTableBody");
+    const rows = tableBody.querySelectorAll("tr");
+    rows.forEach(row => {
+      const rowText = row.textContent.toLowerCase();
+      row.style.display = rowText.includes(searchText.toLowerCase()) ? "" : "none";
     });
   }
 
-  // Globale Variablen
-  let currentReading = null;
-  let allReadings = [];      // Für automatische meterId-Berechnung
-  let allCustomers = [];     // Für den Dropdown "bestehende Kunden"
-
-  // --- Funktion: handleEdit ---
+  // Hilfsfunktion: handleEdit, handleDelete, etc.
   async function handleEdit(event) {
     const id = event.target.dataset.id;
     console.log("Bearbeiten geklickt, ID =", id);
@@ -48,7 +45,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Funktion: handleDelete ---
   async function handleDelete(event) {
     const id = event.target.dataset.id;
     console.log("Löschen geklickt, ID =", id);
@@ -70,17 +66,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Funktion: attachRowEventListeners ---
   function attachRowEventListeners() {
-    document.querySelectorAll(".btn-edit").forEach((btn) =>
+    document.querySelectorAll(".btn-edit").forEach(btn =>
       btn.addEventListener("click", handleEdit)
     );
-    document.querySelectorAll(".btn-delete").forEach((btn) =>
+    document.querySelectorAll(".btn-delete").forEach(btn =>
       btn.addEventListener("click", handleDelete)
     );
   }
 
-  // --- Funktion: loadReadings ---
   async function loadReadings(filterKindOfMeter = "") {
     console.log("Lade Readings, Filter =", filterKindOfMeter);
     try {
@@ -98,16 +92,23 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(`Fehler beim Laden der Ablesungen (Status: ${response.status})`);
       }
       const readings = await response.json();
-      allReadings = readings; // Für meterId-Berechnung
+      allReadings = readings;
       console.log("Readings empfangen:", readings);
       renderReadings(readings);
+
+      // (B) Falls "customerSearch" vorhanden => local filter
+      if (preSearchValue) {
+        // Ins Suchfeld setzen
+        document.getElementById("filterKindOfMeter").value = preSearchValue;
+        // Lokale Filter
+        applyLocalFilter(preSearchValue);
+      }
     } catch (error) {
       console.error("Error loading readings:", error);
       alert("Fehler beim Laden der Ablesungen: " + error.message);
     }
   }
 
-  // --- Funktion: renderReadings ---
   function renderReadings(readings) {
     const tableBody = document.getElementById("readingTableBody");
     tableBody.innerHTML = "";
@@ -129,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     attachRowEventListeners();
   }
 
-  // --- Funktion: loadCustomersForReadingModal ---
+  // Kunden für Modal
   async function loadCustomersForReadingModal() {
     const userId = localStorage.getItem("userId");
     if (!userId) return;
@@ -158,37 +159,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // --- Beim Öffnen des "Neue Ablesung"-Modals ---
+  // "Neue Ablesung" Modal reset
   const addReadingModalElem = document.getElementById("addReadingModal");
   addReadingModalElem.addEventListener("show.bs.modal", () => {
-    // Felder zurücksetzen
     document.getElementById("comment").value = "";
     document.getElementById("dateOfReading").value = "";
-    // Dropdown für Zählertyp zurücksetzen (erste Option wählen)
     document.getElementById("kindOfMeter").selectedIndex = 0;
     document.getElementById("meterCount").value = "";
     document.getElementById("meterId").value = "";
     document.getElementById("substitute").value = "0";
-    // Lade bestehende Kunden für den aktuellen Benutzer in das Dropdown
     loadCustomersForReadingModal();
-    // Optional: Hier kannst Du den Bereich "newCustomerFields" ein- oder ausblenden.
   });
 
-  // --- Wenn der Zählertyp geändert wird, generiere automatisch eine meterId ---
   const kindOfMeterSelect = document.getElementById("kindOfMeter");
   kindOfMeterSelect.addEventListener("change", () => {
     const selectedType = kindOfMeterSelect.value;
     if (!selectedType) return;
-    // Zähle, wie viele Readings mit diesem Zählertyp bereits existieren (für den aktuellen User)
     const count = allReadings.filter(r => r.kindOfMeter === selectedType).length;
     const newNumber = String(count + 1).padStart(3, "0");
     document.getElementById("meterId").value = selectedType + newNumber;
   });
 
-  // --- Beim Speichern einer neuen Ablesung ---
+  // Neue Ablesung speichern
   document.getElementById("saveReadingBtn").addEventListener("click", async () => {
     console.log("Neue Ablesung speichern geklickt!");
-
     const comment = document.getElementById("comment").value.trim();
     const dateOfReading = document.getElementById("dateOfReading").value.trim();
     const kindOfMeter = document.getElementById("kindOfMeter").value;
@@ -197,7 +191,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const substituteInput = document.getElementById("substitute").value.trim();
     const substitute = (substituteInput === "1" || substituteInput.toLowerCase() === "true");
 
-    // Ermitteln, ob ein bestehender Kunde ausgewählt wurde:
     const customerSelect = document.getElementById("customerSelect");
     let customer;
     if (customerSelect && customerSelect.value) {
@@ -212,7 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const customerBirthDate = document.getElementById("customerBirthDate").value.trim();
       const customerGender = document.getElementById("customerGender").value;
       if (!customerFirstName || !customerLastName || !customerBirthDate) {
-        alert("Bitte füllen Sie alle Kundenfelder aus (Vorname, Nachname, Geburtsdatum).");
+        alert("Bitte alle Kundenfelder ausfüllen.");
         return;
       }
       customer = {
@@ -226,18 +219,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!kindOfMeter || isNaN(meterCount) || !dateOfReading) {
-      alert("Bitte füllen Sie alle Pflichtfelder für die Ablesung aus.");
+      alert("Bitte alle Pflichtfelder für die Ablesung ausfüllen.");
       return;
     }
 
     const newReading = {
-      comment: comment,
-      customer: customer,
-      dateOfReading: dateOfReading,
-      kindOfMeter: kindOfMeter,
-      meterCount: meterCount,
+      comment,
+      customer,
+      dateOfReading,
+      kindOfMeter,
+      meterCount,
       meterId: meterId || (kindOfMeter + "001"),
-      substitute: substitute
+      substitute
     };
 
     console.log("POST /readings =>", newReading);
@@ -259,12 +252,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Filter-Button: Läd die Readings anhand des ausgewählten Filters neu
+  // Filter-Button => serverseitiger Filter (kindOfMeter)
   document.getElementById("filterButton").addEventListener("click", () => {
     const filterValue = document.getElementById("filterKindOfMeter").value.trim();
     loadReadings(filterValue);
   });
 
-  // Beim Laden der Seite: initiale Readings laden
+  // Start
   loadReadings();
 });

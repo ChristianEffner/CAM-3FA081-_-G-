@@ -1,13 +1,8 @@
-// customers.js
-
 document.addEventListener("DOMContentLoaded", () => {
   const apiBaseUrl = "http://localhost:8080";
-  let currentCustomer = null; // Für das Bearbeiten
+  let currentCustomer = null;
+  let allCustomers = []; // <== Hier speichern wir später alle Kunden
 
-  /**
-   * Lädt Kunden via GET /customers
-   * (Mit userId-Filter, sodass nur Kunden des aktuellen Users kommen.)
-   */
   async function loadCustomers() {
     console.log("Lade Kunden ...");
     try {
@@ -24,6 +19,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const customers = await response.json();
       console.log("Kunden empfangen:", customers);
+
+      // Speichern für handleDetails()
+      allCustomers = customers;
+
       renderCustomers(customers);
     } catch (error) {
       console.error("Error loading customers:", error);
@@ -31,9 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /**
-   * Rendert die Kundenliste in die Tabelle.
-   */
   function renderCustomers(customers) {
     const tableBody = document.getElementById("customerTableBody");
     tableBody.innerHTML = "";
@@ -64,9 +60,6 @@ document.addEventListener("DOMContentLoaded", () => {
     attachTableEventListeners();
   }
 
-  /**
-   * Tabellen-Buttons verkabeln.
-   */
   function attachTableEventListeners() {
     document
       .querySelectorAll(".btn-edit")
@@ -80,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Kunde bearbeiten (Modal öffnen, Felder füllen)
+   * == Kunde bearbeiten ==
    */
   async function handleEdit(event) {
     const id = event.target.dataset.id;
@@ -98,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       currentCustomer = customer;
 
-      // Felder im Modal belegen
+      // Felder im Modal
       document.getElementById("editCustomerId").value = customer.id || "";
       document.getElementById("editCustomerFirstName").value =
         customer.firstName || "";
@@ -109,7 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("editCustomerGender").value =
         customer.gender || "M";
 
-      // Modal anzeigen
       const editModal = new bootstrap.Modal(
         document.getElementById("editCustomerModal")
       );
@@ -121,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Kunde löschen => DELETE /customers/{id}
+   * == Kunde löschen ==
    */
   async function handleDelete(event) {
     const id = event.target.dataset.id;
@@ -147,17 +139,28 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * "Daten"-Button => Weiterleitung, z.B. reading.html?readingId=XYZ
+   * == Button "Daten" ==
+   * => Weiterleitung zu reading.html?customerSearch=...
    */
   function handleDetails(event) {
     const id = event.target.dataset.id;
     console.log("Details geklickt, ID =", id);
-    // Weiterleiten, z. B. zu reading.html
-    window.location.href = `reading.html?readingId=${id}`;
+
+    // Kunden in "allCustomers" suchen
+    const thisCust = allCustomers.find(c => c.id === id);
+    if (!thisCust) {
+      console.warn("Kunde nicht gefunden:", id);
+      return;
+    }
+    // Bilde Suchbegriff, zB "Vorname Nachname"
+    const searchString = `${thisCust.firstName} ${thisCust.lastName}`.trim();
+
+    // Weiterleiten + QueryParam
+    window.location.href = `reading.html?customerSearch=${encodeURIComponent(searchString)}`;
   }
 
   /**
-   * Klick auf "Speichern" im Bearbeiten-Modal => PUT /customers
+   * == Klick auf "Speichern" im Bearbeiten-Modal => PUT /customers ==
    */
   const updateBtn = document.getElementById("updateCustomerBtn");
   updateBtn.addEventListener("click", async () => {
@@ -205,8 +208,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
       alert("Kunde erfolgreich aktualisiert!");
-
-      // Modal schließen
       bootstrap.Modal.getInstance(
         document.getElementById("editCustomerModal")
       ).hide();
@@ -220,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /**
-   * Klick auf "Speichern" im "Neuer Kunde"-Modal => POST /customers
+   * == Klick auf "Speichern" im "Neuer Kunde"-Modal => POST /customers ==
    */
   const saveBtn = document.getElementById("saveCustomerBtn");
   saveBtn.addEventListener("click", async () => {
@@ -259,8 +260,6 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
       alert("Kunde erfolgreich gespeichert!");
-
-      // Modal schließen
       bootstrap.Modal.getInstance(
         document.getElementById("addCustomerModal")
       ).hide();
@@ -272,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /**
-   * Suche (client-seitig)
+   * Client-seitige Suche
    */
   const searchInput = document.getElementById("searchCustomer");
   if (searchInput) {
@@ -285,6 +284,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Beim Laden der Seite: Kunden laden
+  // Beim Laden der Seite
   loadCustomers();
 });

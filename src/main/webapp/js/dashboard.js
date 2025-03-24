@@ -45,7 +45,12 @@ document.addEventListener("DOMContentLoaded", () => {
         datasets: [{
           label: "Geschlechterverteilung",
           data: data,
-          backgroundColor: ["#36A2EB", "#FF6384", "#FFCE56"]
+          backgroundColor: ["#FFCE56", "#36A2EB", "#FF6384" ]
+          // Die Farbvergebung ist jetzt für die Arrays gelöst, kannst du das bitte ändern, sodass die Gender
+          // die möglich wören [M,D,W] jeder feste Farbwerte haben und nicht nur die Stellen vom Array.
+          // Männlich (M)  Blau
+          // Weiblich (w) Rosa
+          // Divers (D) such eine passende Farbe aus.
         }]
       },
       options: {
