@@ -2,179 +2,207 @@ package hausfix.CRUD;
 
 import hausfix.Database.DatabaseConnection;
 import hausfix.entities.User;
+import hausfix.security.PasswordUtil;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * REST-CRUD-Ressource für Benutzer.
+ * <p>
+ * Endpunkte:
+ *   GET    /users            – Liste aller Benutzer (ohne Passwort-Hash)
+ *   GET    /users/{id}       – Einzelner Benutzer (ohne Passwort-Hash)
+ *   POST   /users            – Benutzer anlegen (Passwort wird sofort gehasht)
+ *   PUT    /users/{id}       – Benutzer aktualisieren (optional neues Passwort)
+ *   DELETE /users/{id}       – Benutzer löschen
+ *   POST   /users/login      – Login (Passwort-Hash-Verifizierung)
+ */
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class CrudUser {
 
-    private final DatabaseConnection databaseConnection = DatabaseConnection.getInstance();
+    private final DatabaseConnection db = DatabaseConnection.getInstance();
+
+    /* -------------------------------------------------- READ -------------------------------------------------- */
 
     @GET
     public Response getAllUsers() {
-        try {
-            String query = "SELECT * FROM `users`";
-            List<User> users = new ArrayList<>();
+        if (db.connection == null)
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity("{\"error\":\"DB-Verbindung nicht verfügbar\"}").build();
 
-            try (var statement = databaseConnection.connection.createStatement();
-                 var resultSet = statement.executeQuery(query)) {
+        String sql = "SELECT id, username FROM `users`";
+        List<User> users = new ArrayList<>();
 
-                while (resultSet.next()) {
-                    User user = new User();
-                    user.setId(resultSet.getLong("id"));
-                    user.setUsername(resultSet.getString("username"));
-                    user.setPassword(resultSet.getString("password"));
-                    users.add(user);
-                }
+        try (var st = db.connection.createStatement();
+             var rs = st.executeQuery(sql)) {
+
+            while (rs.next()) {
+                User u = new User();
+                u.setId(rs.getLong("id"));
+                u.setUsername(rs.getString("username"));
+                u.setPassword(null);          // Passwort niemals ausgeben
+                users.add(u);
             }
             return Response.ok(users).build();
+
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Fehler beim Abrufen der Benutzer!: " + e.getMessage()).build();
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
 
     @GET
     @Path("/{id}")
-    public Response getUserById(@PathParam("id") Long id) {
-        try {
-            String query = "SELECT * FROM `users` WHERE id = ?";
-            User user = null;
+    public Response getUserById(@PathParam("id") long id) {
+        if (db.connection == null)
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity("{\"error\":\"DB-Verbindung nicht verfügbar\"}").build();
 
-            try (var preparedStatement = databaseConnection.connection.prepareStatement(query)) {
-                preparedStatement.setLong(1, id);
-                try (var resultSet = preparedStatement.executeQuery()) {
-                    if (resultSet.next()) {
-                        user = new User();
-                        user.setId(resultSet.getLong("id"));
-                        user.setUsername(resultSet.getString("username"));
-                        user.setPassword(resultSet.getString("password"));
-                    }
+        String sql = "SELECT id, username FROM `users` WHERE id = ?";
+        try (var ps = db.connection.prepareStatement(sql)) {
+            ps.setLong(1, id);
+
+            try (var rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User u = new User();
+                    u.setId(rs.getLong("id"));
+                    u.setUsername(rs.getString("username"));
+                    u.setPassword(null);
+                    return Response.ok(u).build();
                 }
             }
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\":\"Benutzer nicht gefunden\"}").build();
 
-            if (user == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity("Benutzer nicht gefunden").build();
-            }
-            return Response.ok(user).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Fehler beim Abrufen des Benutzers: " + e.getMessage()).build();
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
+
+    /* -------------------------------------------------- CREATE -------------------------------------------------- */
 
     @POST
     public Response createUser(User user) {
-        try {
-            String query = "INSERT INTO `users` (username, password) VALUES (?, ?)";
-            try (var preparedStatement = databaseConnection.connection.prepareStatement(query, java.sql.Statement.RETURN_GENERATED_KEYS)) {
-                preparedStatement.setString(1, user.getUsername());
-                preparedStatement.setString(2, user.getPassword());
-                preparedStatement.executeUpdate();
+        if (db.connection == null)
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity("{\"error\":\"DB-Verbindung nicht verfügbar\"}").build();
 
-                try (ResultSet rs = preparedStatement.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        long generatedId = rs.getLong(1);
-                        user.setId(generatedId);
-                    }
-                }
+        String sql = "INSERT INTO `users` (username, password) VALUES (?, ?)";
+        try (var ps = db.connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, user.getUsername());
+            ps.setString(2, PasswordUtil.hash(user.getPassword()));
+            ps.executeUpdate();
+
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) user.setId(keys.getLong(1));
             }
-            // Aus Sicherheitsgründen das Passwort aus der Rückgabe entfernen
             user.setPassword(null);
-            return Response.status(Response.Status.CREATED)
-                    .entity(user).build();
+            return Response.status(Response.Status.CREATED).entity(user).build();
+
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Fehler beim Erstellen des Benutzers: " + e.getMessage()).build();
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
+
+    /* -------------------------------------------------- UPDATE -------------------------------------------------- */
 
     @PUT
     @Path("/{id}")
-    public Response updateUser(@PathParam("id") Long id, User updatedUser) {
-        try {
-            String query = "UPDATE `users` SET username = ?, password = ? WHERE id = ?";
+    public Response updateUser(@PathParam("id") long id, User updated) {
+        if (db.connection == null)
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity("{\"error\":\"DB-Verbindung nicht verfügbar\"}").build();
 
-            try (var preparedStatement = databaseConnection.connection.prepareStatement(query)) {
-                preparedStatement.setString(1, updatedUser.getUsername());
-                preparedStatement.setString(2, updatedUser.getPassword());
-                preparedStatement.setLong(3, id);
-                int rowsAffected = preparedStatement.executeUpdate();
+        boolean pwProvided = updated.getPassword() != null && !updated.getPassword().isBlank();
+        String sql = pwProvided
+                ? "UPDATE `users` SET username = ?, password = ? WHERE id = ?"
+                : "UPDATE `users` SET username = ?          WHERE id = ?";
 
-                if (rowsAffected == 0) {
-                    return Response.status(Response.Status.NOT_FOUND)
-                            .entity("Benutzer nicht gefunden").build();
-                }
+        try (var ps = db.connection.prepareStatement(sql)) {
+            ps.setString(1, updated.getUsername());
+
+            if (pwProvided) {
+                ps.setString(2, PasswordUtil.hash(updated.getPassword()));
+                ps.setLong(3, id);
+            } else {
+                ps.setLong(2, id);
             }
 
-            return Response.ok("Benutzer erfolgreich aktualisiert").build();
+            if (ps.executeUpdate() == 0) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\":\"Benutzer nicht gefunden\"}").build();
+            }
+            return Response.ok("{\"message\":\"Benutzer aktualisiert\"}").build();
+
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Fehler beim Aktualisieren des Benutzers: " + e.getMessage()).build();
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
+
+    /* -------------------------------------------------- DELETE -------------------------------------------------- */
 
     @DELETE
     @Path("/{id}")
-    public Response deleteUser(@PathParam("id") Long id) {
-        try {
-            String query = "DELETE FROM `users` WHERE id = ?";
+    public Response deleteUser(@PathParam("id") long id) {
+        if (db.connection == null)
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity("{\"error\":\"DB-Verbindung nicht verfügbar\"}").build();
 
-            try (var preparedStatement = databaseConnection.connection.prepareStatement(query)) {
-                preparedStatement.setLong(1, id);
-                int rowsAffected = preparedStatement.executeUpdate();
-
-                if (rowsAffected == 0) {
-                    return Response.status(Response.Status.NOT_FOUND)
-                            .entity("Benutzer nicht gefunden").build();
-                }
+        String sql = "DELETE FROM `users` WHERE id = ?";
+        try (var ps = db.connection.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            if (ps.executeUpdate() == 0) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\":\"Benutzer nicht gefunden\"}").build();
             }
+            return Response.ok("{\"message\":\"Benutzer gelöscht\"}").build();
 
-            return Response.ok("Benutzer erfolgreich gelöscht").build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Fehler beim Löschen des Benutzers: " + e.getMessage()).build();
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
 
+    /* -------------------------------------------------- LOGIN -------------------------------------------------- */
+
     @POST
     @Path("/login")
-    public Response login(User user) {
-        try {
-            String username = user.getUsername();
-            String password = user.getPassword();
+    public Response login(User credentials) {
+        if (db.connection == null)
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity("{\"error\":\"DB-Verbindung nicht verfügbar\"}").build();
 
-            String sql = "SELECT * FROM `users` WHERE username = ? AND password = ? LIMIT 1";
+        String sql = "SELECT id, username, password FROM `users` WHERE username = ? LIMIT 1";
+        try (var ps = db.connection.prepareStatement(sql)) {
+            ps.setString(1, credentials.getUsername());
 
-            try (var preparedStatement = databaseConnection.connection.prepareStatement(sql)) {
-                preparedStatement.setString(1, username);
-                preparedStatement.setString(2, password);
-
-                try (var rs = preparedStatement.executeQuery()) {
-                    if (rs.next()) {
-                        User foundUser = new User();
-                        foundUser.setId(rs.getLong("id"));
-                        foundUser.setUsername(rs.getString("username"));
-                        // Passwort nicht zurückgeben
-                        return Response.ok(foundUser).build();
-                    } else {
-                        return Response.status(Response.Status.UNAUTHORIZED)
-                                .entity("Login fehlgeschlagen: Benutzername oder Passwort inkorrekt.")
-                                .build();
+            try (var rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String storedHash = rs.getString("password");
+                    if (PasswordUtil.verify(credentials.getPassword(), storedHash)) {
+                        User u = new User();
+                        u.setId(rs.getLong("id"));
+                        u.setUsername(rs.getString("username"));
+                        return Response.ok(u).build();
                     }
                 }
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .entity("{\"error\":\"Login fehlgeschlagen\"}").build();
             }
 
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Fehler beim Login: " + e.getMessage()).build();
+                    .entity("{\"error\":\"" + e.getMessage() + "\"}").build();
         }
     }
 }

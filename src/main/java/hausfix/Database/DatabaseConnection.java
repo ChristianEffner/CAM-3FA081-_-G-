@@ -2,6 +2,7 @@ package hausfix.Database;
 
 import hausfix.interfaces.IDatabaseConnection;
 import hausfix.entities.User;
+import hausfix.security.PasswordUtil;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -174,7 +175,8 @@ public class DatabaseConnection implements IDatabaseConnection {
 
                 try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
                     preparedStatement.setString(1, user.getUsername());
-                    preparedStatement.setString(2, user.getPassword());
+                    preparedStatement.setString(2, PasswordUtil.hash(user.getPassword()));
+
                     preparedStatement.executeUpdate();
                     System.out.println("User erfolgreich gespeichert.");
                 }

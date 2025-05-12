@@ -49,9 +49,6 @@ document.addEventListener("DOMContentLoaded", () => {
           <button class="btn btn-danger btn-delete" data-id="${customer.id}">
             Löschen
           </button>
-          <button class="btn btn-info btn-details" data-id="${customer.id}">
-            Daten
-          </button>
         </td>
       `;
       tableBody.appendChild(row);

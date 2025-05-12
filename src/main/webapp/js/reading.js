@@ -1,6 +1,23 @@
 document.addEventListener("DOMContentLoaded", () => {
   const apiBaseUrl = "http://localhost:8080";
 
+   // Hilfsfunktion zur Erzeugung einer UUID (RFC4122 Version 4)
+    function generateUUID() {
+      let d = new Date().getTime();
+      let d2 = (performance && performance.now && (performance.now() * 1000)) || 0;
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        let r = Math.random() * 16;
+        if (d > 0) {
+          r = (d + r) % 16 | 0;
+          d = Math.floor(d / 16);
+        } else {
+          r = (d2 + r) % 16 | 0;
+          d2 = Math.floor(d2 / 16);
+        }
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+    }
+
   // Globale Variablen
   let currentReading = null;
   let allReadings = [];
@@ -142,6 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const customers = await response.json();
       allCustomers = customers;
       populateCustomerDropdown(customers);
+      document.getElementById("customerSelect").addEventListener("change", toggleNewCustomerFields);
     } catch (error) {
       console.error("Error loading customers for modal:", error);
     }
@@ -158,6 +176,31 @@ document.addEventListener("DOMContentLoaded", () => {
       selectElem.appendChild(option);
     });
   }
+  function toggleNewCustomerFields() {
+    const select = document.getElementById("customerSelect");
+    const newCustomerFields = document.getElementById("newCustomerFields");
+
+    if (select.value === "") {
+      // Neuer Kunde → Felder aktivieren und UUID setzen
+      newCustomerFields.querySelectorAll("input, select").forEach(el => {
+        el.disabled = false;
+      });
+
+      const customerIdInput = document.getElementById("customerId");
+      if (!customerIdInput.value) {
+        customerIdInput.value = generateUUID();
+      }
+      newCustomerFields.style.display = "block";
+    } else {
+      // Bestehender Kunde → Felder deaktivieren
+      newCustomerFields.querySelectorAll("input, select").forEach(el => {
+        el.disabled = true;
+      });
+      newCustomerFields.style.display = "none";
+    }
+  }
+
+
 
   // "Neue Ablesung" Modal reset
   const addReadingModalElem = document.getElementById("addReadingModal");
@@ -168,8 +211,11 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("meterCount").value = "";
     document.getElementById("meterId").value = "";
     document.getElementById("substitute").value = "0";
+    document.getElementById("customerId").value = ""; // Reset UUID
     loadCustomersForReadingModal();
+    toggleNewCustomerFields(); // 🆕 direkt beim Öffnen prüfen
   });
+
 
   const kindOfMeterSelect = document.getElementById("kindOfMeter");
   kindOfMeterSelect.addEventListener("change", () => {
