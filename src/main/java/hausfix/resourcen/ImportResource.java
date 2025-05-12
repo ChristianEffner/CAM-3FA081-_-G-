@@ -1,10 +1,13 @@
 package hausfix.resourcen;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import hausfix.CRUD.CrudCustomer;
 import hausfix.entities.Customer;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -34,7 +37,7 @@ public class ImportResource {
             @FormDataParam("file") FormDataContentDisposition fileDetail,
             @QueryParam("format") String format) {
 
-        if (fileInputStream == null || format == null) {
+        if (fileInputStream == null || format == null || fileDetail == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Fehlende Datei oder Format").build();
         }
 
@@ -51,17 +54,26 @@ public class ImportResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiges Importformat").build();
             }
 
+            if (customers.isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\": \"Kein Kunde vorhanden, füge einen Kunden hinzu.\"}")
+                        .build();
+            }
+
             for (Customer customer : customers) {
                 customer.setId(UUID.randomUUID()); // Generiere eine neue UUID
                 crudCustomer.addNewCustomer(customer);
             }
 
-            return Response.ok("Import erfolgreich!").build();
+            return Response.ok("{\"message\": \"Import erfolgreich!\"}").build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Fehler beim Import: " + e.getMessage()).build();
+                    .entity("{\"message\": \"Fehler beim Import: " + e.getMessage() + "\"}")
+                    .build();
         }
     }
+
 
     private List<Customer> parseCSV(InputStream fileInputStream) throws IOException {
         List<Customer> customers = new ArrayList<>();
@@ -83,13 +95,25 @@ public class ImportResource {
     }
 
     private List<Customer> parseJSON(InputStream fileInputStream) throws IOException {
-        return new ArrayList<>(Arrays.asList(new com.fasterxml.jackson.databind.ObjectMapper().readValue(fileInputStream, Customer[].class)));
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+
+        return new ArrayList<>(Arrays.asList(
+                mapper.readValue(fileInputStream, Customer[].class)
+        ));
     }
 
 
-    private List<Customer> parseXML(InputStream fileInputStream) throws IOException, JAXBException {
-        return List.of((Customer) jakarta.xml.bind.JAXBContext.newInstance(Customer[].class)
+
+
+    private List<Customer> parseXML(InputStream fileInputStream) throws JAXBException {
+        CustomerList wrapper = (CustomerList) JAXBContext
+                .newInstance(CustomerList.class)
                 .createUnmarshaller()
-                .unmarshal(new InputStreamReader(fileInputStream, StandardCharsets.UTF_8)));
+                .unmarshal(new InputStreamReader(fileInputStream, StandardCharsets.UTF_8));
+
+        return wrapper.getCustomers();
     }
+
+
 }

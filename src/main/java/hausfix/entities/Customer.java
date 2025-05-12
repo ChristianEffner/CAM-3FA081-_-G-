@@ -2,9 +2,15 @@ package hausfix.entities;
 
 import hausfix.enums.Gender;
 import hausfix.interfaces.ICustomer;
+import hausfix.resourcen.LocalDateAdapter;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
 import java.time.LocalDate;
 import java.util.UUID;
 
+@XmlRootElement(name = "customer")
 public class Customer implements ICustomer {
 
     private UUID id;
@@ -34,7 +40,9 @@ public class Customer implements ICustomer {
         this.gender = gender;
         this.userId = userId;
     }
+
     // Getter/Setter für userId
+    @XmlElement(name = "userId")
     public Long getUserId() {
         return userId;
     }
@@ -62,27 +70,28 @@ public class Customer implements ICustomer {
     public void setGender(Gender gender) {
         this.gender = gender;
     }
-
+    @XmlElement(name = "firstName")
     @Override
     public String getFirstName() {
         return firstName;
     }
-
+    @XmlElement(name = "lastName")
     @Override
     public String getLastName() {
         return lastName;
     }
-
+    @XmlElement(name = "birthDate")
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     @Override
     public LocalDate getBirthDate() {
         return birthday;
     }
-
+    @XmlElement(name = "gender")
     @Override
     public Gender getGender() {
         return gender;
     }
-
+    @XmlElement(name = "id")
     @Override
     public UUID getId() {
         return id;
