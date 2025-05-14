@@ -27,7 +27,12 @@ public class ExportResource {
                 return Response.ok(customers, MediaType.APPLICATION_JSON).build();
 
             case "xml":
-                return Response.ok(customers, MediaType.APPLICATION_XML).build();
+                CustomerList customerListWrapper = new CustomerList(customers);
+                return Response.ok(customerListWrapper, MediaType.APPLICATION_XML)
+                        .header("Content-Disposition", "attachment; filename=\"customers.xml\"")
+                        .build();
+
+
 
             case "csv":
                 return Response.ok(convertToCSV(customers))
@@ -42,17 +47,21 @@ public class ExportResource {
 
 
     private String convertToCSV(List<Customer> customers) {
-        StringBuilder csvData = new StringBuilder("ID,First Name,Last Name,Birth Date,Gender,User ID\n");
+        StringBuilder sb = new StringBuilder();
+        sb.append("First Name,Last Name,Birth Date,Gender,User ID\n");
+
         for (Customer customer : customers) {
-            csvData.append(customer.getId()).append(",");
-            csvData.append(customer.getFirstName()).append(",");
-            csvData.append(customer.getLastName()).append(",");
-            csvData.append(customer.getBirthDate()).append(",");
-            csvData.append(customer.getGender()).append(",");
-            csvData.append(customer.getUserId() != null ? customer.getUserId() : "").append("\n");
+            sb.append(customer.getFirstName()).append(",");
+            sb.append(customer.getLastName()).append(",");
+            sb.append(customer.getBirthDate()).append(",");
+            sb.append(customer.getGender()).append(",");
+            sb.append(customer.getUserId()).append("\n");
         }
-        return csvData.toString();
+
+        return sb.toString();
     }
+
+
 }
 
 
