@@ -64,8 +64,6 @@
         <button id="exportCsvBtn" class="btn btn-primary mb-2">Export CSV</button>
 
 
-        <hr/>
-
         <h3>Import Kunden</h3>
         <input type="file" id="fileInput" />
         <select id="importFormat" class="form-select w-25 d-inline-block">
@@ -74,6 +72,28 @@
             <option value="json">JSON</option>
         </select>
         <button id="importBtn" class="btn btn-success ms-2">Import</button>
+
+        <hr/>
+
+
+    </section>
+    <section class="w-75">
+        <h3>Export Ablesedaten</h3>
+        <button id="exportcustJsonBtn" class="btn btn-primary mb-2">Export JSON</button>
+        <button id="exportcustXmlBtn" class="btn btn-primary mb-2">Export XML</button>
+        <button id="exportcustCsvBtn" class="btn btn-primary mb-2">Export CSV</button>
+
+
+
+        <h3>Import Ablesedaten</h3>
+        <input type="file" id="filereadingInput" />
+        <select id="importreadingFormat" class="form-select w-25 d-inline-block">
+            <option value="csv">CSV</option>
+            <option value="xml">XML</option>
+            <option value="json">JSON</option>
+        </select>
+        <button id="importreadingBtn" class="btn btn-success ms-2">Import</button>
+
 
     </section>
 </div>
