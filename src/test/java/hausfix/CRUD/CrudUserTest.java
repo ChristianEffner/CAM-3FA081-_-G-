@@ -2,6 +2,7 @@ package hausfix.CRUD;
 
 import hausfix.Database.DatabaseConnection;
 import hausfix.entities.User;
+import hausfix.security.PasswordUtil;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.*;
 
@@ -90,7 +91,6 @@ class CrudUserTest {
         assertEquals(userId, retrievedUser.getId());
         assertEquals("user_get", retrievedUser.getUsername());
         // Bei getUserById wird das Passwort zurückgegeben
-        assertEquals("pass_get", retrievedUser.getPassword());
     }
 
     @Test
@@ -112,12 +112,11 @@ class CrudUserTest {
         Response updateResponse = crudUser.updateUser(userId, updatedUser);
         assertEquals(Response.Status.OK.getStatusCode(), updateResponse.getStatus());
         String updateMsg = (String) updateResponse.getEntity();
-        assertTrue(updateMsg.contains("Benutzer erfolgreich aktualisiert"));
+        assertEquals("{\"message\":\"Benutzer aktualisiert\"}", updateMsg);
 
         Response getResponse = crudUser.getUserById(userId);
         User retrievedUser = (User) getResponse.getEntity();
         assertEquals("updatedUser", retrievedUser.getUsername());
-        assertEquals("newPass", retrievedUser.getPassword());
     }
 
     @Test
@@ -139,7 +138,7 @@ class CrudUserTest {
         Response deleteResponse = crudUser.deleteUser(userId);
         assertEquals(Response.Status.OK.getStatusCode(), deleteResponse.getStatus());
         String deleteMsg = (String) deleteResponse.getEntity();
-        assertTrue(deleteMsg.contains("Benutzer erfolgreich gelöscht"));
+        assertTrue(deleteMsg.contains("Benutzer gelöscht"));
 
         Response getResponse = crudUser.getUserById(userId);
         assertEquals(Response.Status.NOT_FOUND.getStatusCode(), getResponse.getStatus());
@@ -182,4 +181,34 @@ class CrudUserTest {
         String msg = (String) loginResponse.getEntity();
         assertTrue(msg.contains("Login fehlgeschlagen"));
     }
+
+    @Test
+    public void testLoginUnknownUser() {
+        User loginAttempt = new User("ghostUser", "anyPassword");
+        Response loginResponse = crudUser.login(loginAttempt);
+        assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), loginResponse.getStatus());
+        String msg = (String) loginResponse.getEntity();
+        assertTrue(msg.contains("Login fehlgeschlagen"));
+    }
+
+    @Test
+    public void testUpdateUserWithoutPassword() {
+        User user = new User("noPwUser", "start123");
+        Response createResponse = crudUser.createUser(user);
+        User created = (User) createResponse.getEntity();
+
+        // Passwort bewusst weglassen
+        User update = new User("noPwUserUpdated", null);
+        Response updateResponse = crudUser.updateUser(created.getId(), update);
+
+        assertEquals(Response.Status.OK.getStatusCode(), updateResponse.getStatus());
+
+        Response getResponse = crudUser.getUserById(created.getId());
+        User updatedUser = (User) getResponse.getEntity();
+        assertEquals("noPwUserUpdated", updatedUser.getUsername());
+    }
+
+
+
+
 }

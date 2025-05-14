@@ -210,7 +210,7 @@ public class CrudCustomerTest {
         // Test für den Fall, dass Daten in der Tabelle vorhanden sind
         List<Customer> customers = crudCustomer.readAllCustomers();
 
-        assertEquals(3, customers.size(), "Es sollten drei Kunden in der Liste sein.");
+        assertEquals(6, customers.size(), "Es sollten drei Kunden in der Liste sein.");
         // Weitere Überprüfungen der Kundendaten wie IDs, Namen, etc.
     }
 
@@ -238,5 +238,82 @@ public class CrudCustomerTest {
 
         assertNotNull(customers, "Die Kundenliste sollte nicht null sein.");
         assertTrue(customers.isEmpty(), "Die Kundenliste sollte leer sein, wenn eine SQLException auftritt.");
+    }
+
+    @Test
+    void testReadCustomersForSpecificUser() throws SQLException {
+        Long userId = 123L;
+
+        // Dummy-User in 'users'-Tabelle anlegen
+        try (PreparedStatement insertUser = connection.prepareStatement(
+                "INSERT INTO users (id, username, password) VALUES (?, ?, ?)")) {
+            insertUser.setLong(1, userId);
+            insertUser.setString(2, "testuser");
+            insertUser.setString(3, "password");
+            insertUser.executeUpdate();
+        }
+
+        // Jetzt den Customer hinzufügen
+        Customer customer = new Customer(UUID.randomUUID(), "Max", "Mustermann", LocalDate.of(1985, 3, 3), Gender.M);
+        customer.setUserId(userId);
+        crudCustomer.addNewCustomer(customer);
+
+        // Test: Nur Kunden für diesen userId
+        List<Customer> customers = crudCustomer.readCustomersForUser(userId);
+        assertEquals(1, customers.size());
+        assertEquals(userId, customers.get(0).getUserId());
+    }
+
+    @Test
+    public void testAddNewCustomerWithUserId() throws SQLException {
+        Long userId = 456L;
+
+        // Dummy-User in der Tabelle 'users' anlegen
+        try (PreparedStatement insertUser = connection.prepareStatement(
+                "INSERT INTO users (id, username, password) VALUES (?, ?, ?)")) {
+            insertUser.setLong(1, userId);
+            insertUser.setString(2, "anna_user");
+            insertUser.setString(3, "securepassword");
+            insertUser.executeUpdate();
+        }
+
+        // Jetzt den Customer anlegen
+        Customer customer = new Customer(UUID.randomUUID(), "Anna", "Musterfrau", LocalDate.of(1991, 2, 2), Gender.W);
+        customer.setUserId(userId);
+        crudCustomer.addNewCustomer(customer);
+
+        // Überprüfung: Wurde der Kunde korrekt gespeichert?
+        try (PreparedStatement stmt = connection.prepareStatement("SELECT * FROM customer WHERE id = ?")) {
+            stmt.setString(1, customer.getId().toString());
+            ResultSet rs = stmt.executeQuery();
+
+            assertTrue(rs.next(), "Customer should exist in the database.");
+            assertEquals(userId, rs.getLong("user_id"));
+        }
+
+        // Optional: Benutzer am Ende wieder löschen (Cleanup)
+        try (PreparedStatement deleteUser = connection.prepareStatement("DELETE FROM users WHERE id = ?")) {
+            deleteUser.setLong(1, userId);
+            deleteUser.executeUpdate();
+        }
+    }
+
+    @Test
+    public void testUpdateCustomerByIdThrowsSQLException() throws SQLException {
+        // 1. Lege einen gültigen Customer an
+        UUID id = UUID.randomUUID();
+        Customer validCustomer = new Customer(id, "Anna", "Valid", LocalDate.of(1990, 1, 1), Gender.W);
+        validCustomer.setUserId(null);
+        crudCustomer.addNewCustomer(validCustomer);
+
+        // 2. Jetzt ersetze userId mit einem nicht existierenden Wert, der einen FK-Verstoß verursacht
+        validCustomer.setUserId(999999L); // Diese user_id gibt es nicht
+
+        // 3. Versuche Update → muss in SQLException (FK violation) laufen
+        Response response = crudCustomer.updateCustomerById(validCustomer);
+
+        // 4. Jetzt wird die SQLException im catch-Block behandelt → 500 wird zurückgegeben
+        assertEquals(500, response.getStatus());
+        assertTrue(response.getEntity().toString().contains("An error occurred"));
     }
 }

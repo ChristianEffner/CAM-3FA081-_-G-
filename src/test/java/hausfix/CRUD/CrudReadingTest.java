@@ -12,19 +12,20 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 class CrudReadingTest {
 
     private static CrudCustomer crudCustomer;
     private static CrudReading crudReading;
     private static Connection connection;
+
+     // Ersetze mit deinem echten CRUD-Objekt
+
 
     @BeforeAll
     public static void setUp() throws SQLException {
@@ -235,5 +236,47 @@ class CrudReadingTest {
             ResultSet resultSet = stmt.executeQuery();
             assertFalse(resultSet.next(), "No reading should exist in the database for the invalid ID.");
         }
+    }
+
+    @Test
+    public void testAddNewReadingWithoutCustomerThrowsException() {
+        Reading reading = new Reading(UUID.randomUUID(), "Missing customer", null,
+                LocalDate.now(), KindOfMeter.STROM, 150.0, "MTR001", false);
+        assertThrows(IllegalArgumentException.class, () -> crudReading.addNewReading(reading));
+    }
+
+    @Test
+    public void testReadAllReadingReturnsExpectedData() throws SQLException {
+        UUID customerId = UUID.randomUUID();
+        Customer customer = new Customer(customerId, "Multi", "Read", LocalDate.of(1995, 3, 20), Gender.W);
+        crudCustomer.addNewCustomer(customer);
+
+        Reading reading1 = new Reading(UUID.randomUUID(), "Multi 1", customer, LocalDate.now(), KindOfMeter.STROM, 111.1, "MID001", false);
+        Reading reading2 = new Reading(UUID.randomUUID(), "Multi 2", customer, LocalDate.now(), KindOfMeter.WASSER, 222.2, "MID002", true);
+        crudReading.addNewReading(reading1);
+        crudReading.addNewReading(reading2);
+
+        List<Reading> allReadings = crudReading.readAllReading();
+        List<UUID> ids = allReadings.stream().map(Reading::getId).collect(Collectors.toList());
+
+        assertTrue(ids.contains(reading1.getId()));
+        assertTrue(ids.contains(reading2.getId()));
+    }
+
+    @Test
+    public void testReadAllReadingForUserReturnsOnlyUserReadings() throws SQLException {
+        Long userId = 1L;
+        UUID customerId = UUID.randomUUID();
+        Customer customer = new Customer(customerId, "User", "Specific", LocalDate.of(1988, 8, 8), Gender.M);
+        customer.setUserId(userId);
+        crudCustomer.addNewCustomer(customer);
+
+        Reading userReading = new Reading(UUID.randomUUID(), "User Reading", customer, LocalDate.now(), KindOfMeter.WASSER, 300.0, "MID003", false);
+        crudReading.addNewReading(userReading);
+
+        List<Reading> userReadings = crudReading.readAllReadingForUser(userId);
+
+        assertTrue(userReadings.stream().anyMatch(r -> r.getId().equals(userReading.getId())), "Reading for user should be found.");
+        assertTrue(userReadings.stream().allMatch(r -> r.getUserId().equals(userId)), "All readings should match userId.");
     }
 }
