@@ -1,12 +1,10 @@
 package hausfix.CRUD;
-
 import hausfix.entities.Customer;
 import hausfix.entities.Reading;
 import hausfix.enums.Gender;
 import hausfix.enums.KindOfMeter;
 import hausfix.Database.DatabaseConnection;
 import hausfix.interfaces.ICustomer;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,10 +24,11 @@ public class CrudReading extends DatabaseConnection {
      * Falls der Customer noch nicht existiert, wird er anhand der ICustomer-Daten erstellt und
      * dem aktiven User zugeordnet. Zusätzlich wird das Feld user_id in der Reading-Tabelle gesetzt.
      *
-     * WICHTIG: Damit der Fremdschlüssel (user_id) gültig ist, muss in der Tabelle `users`
+     * WICHTIG: Damit der Fremdschlüssel (user_id) gültig ist, muss in der Tabelle users
      * ein Datensatz mit der entsprechenden ID existieren – zum Beispiel ein Dummy-Benutzer,
      * den Du in Deiner Setup-Phase anlegst.
      */
+
     public void addNewReading(Reading reading) {
         // Prüfe, ob ein Customer übergeben wurde
         if (reading.getCustomer() == null) {
@@ -71,7 +70,7 @@ public class CrudReading extends DatabaseConnection {
         // Ermittle den user_id-Wert für das Reading (entspricht dem des zugehörigen Customers)
         Long userIdForReading = customerObj.getUserId();
 
-        // WICHTIG: Stelle sicher, dass in der Tabelle `users` ein Datensatz mit user_id = userIdForReading existiert!
+        // WICHTIG: Stelle sicher, dass in der Tabelle users ein Datensatz mit user_id = userIdForReading existiert!
         // Falls nicht, schlägt das Insert fehl.
 
         // Führe den Insert für das Reading aus (inklusive user_id)

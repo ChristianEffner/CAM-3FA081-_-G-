@@ -39,7 +39,9 @@ public class CrudCustomer {
                 preparedStatement.setLong(6, customer.getUserId());
             }
 
-            preparedStatement.executeUpdate(); // Führe das Insert aus
+            preparedStatement.executeUpdate();// Führe das Insert aus
+
+            System.out.println("Kunde erfolgreich erstellt");
 
             return Response.status(Response.Status.CREATED)
                     .entity(customer)

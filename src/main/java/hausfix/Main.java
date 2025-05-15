@@ -1,5 +1,4 @@
 package hausfix;
-
 import hausfix.CRUD.CrudCustomer;
 import hausfix.CRUD.CrudReading;
 import hausfix.Database.DatabaseConnection;
@@ -8,10 +7,10 @@ import hausfix.entities.Reading;
 import hausfix.enums.Gender;
 import hausfix.enums.KindOfMeter;
 import hausfix.rest.Server;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Properties;
@@ -20,25 +19,42 @@ import java.util.UUID;
 public class Main {
     public static void main(String[] args) throws SQLException {
 
+        //Kunde und Ablesung Objekt
         UUID customerId = UUID.fromString("1e160c14-84ac-476f-8e76-4053293c68c5");
         UUID readingId = UUID.fromString("5d50da4d-39fb-41d8-ad85-07ee956bd340");
-
-        Customer customer1 = new Customer(customerId, "L", "K", LocalDate.of(2000, 11, 20), Gender.D);
+        Customer customer1 = new Customer(customerId, "Christian", "Effner", LocalDate.of(1999, 1, 19), Gender.M);
         Reading reading1 = new Reading(readingId, "new test1", customer1, LocalDate.of(2005, 1, 1), KindOfMeter.HEIZUNG, 18.0, "test1", Boolean.FALSE);
 
+        //Objekte für Operationen
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
         CrudCustomer crudCustomerManager = new CrudCustomer();
         CrudReading crudReadingManager = new CrudReading();
         Server server = new Server();
 
-        // 1) Verbindung öffnen
+        //Verbindung öffnen
         dbManager.openConnection(getProperties());
         System.out.println("Datenbankverbindung geöffnet.");
 
-        // 2) Jetzt Tabellen erstellen
-        dbManager.createAllTables();
+        //Tabellen löschen
+        //dbManager.removeAllTables();
 
-        // 3) Dann REST-Server starten
+        //Tabellen erstellen
+        //dbManager.createAllTables();
+
+        //Kunde erstellen
+        //crudCustomerManager.addNewCustomer(customer1);
+
+        //Kunde updaten
+        //crudCustomerManager.updateCustomerById(customer1);
+
+        //Kunde löschen
+        //crudCustomerManager.deleteCustomerById(customerId);
+
+        //Ablesung erstellen
+        //crudReadingManager.addNewReading(reading1);
+
+
+        //REST-Server starten
         Server.startRestServer();
         System.out.println("REST-Server gestartet.");
     }
@@ -54,3 +70,5 @@ public class Main {
         return properties;
     }
 }
+
+

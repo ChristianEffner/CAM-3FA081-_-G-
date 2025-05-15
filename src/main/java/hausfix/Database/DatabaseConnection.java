@@ -1,9 +1,7 @@
 package hausfix.Database;
-
 import hausfix.interfaces.IDatabaseConnection;
 import hausfix.entities.User;
 import hausfix.security.PasswordUtil;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;

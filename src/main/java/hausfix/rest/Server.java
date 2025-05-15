@@ -14,7 +14,7 @@ public class Server {
             System.out.println("Server is already running.");
             return;
         }
-        String url = "http://localhost:8080/";
+        final String url = "http://localhost:8080/";
         System.out.println("Starting server...");
         System.out.println("URL: " + url);
 

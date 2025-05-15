@@ -1,9 +1,7 @@
 package hausfix.resourcen;
-
 import hausfix.CRUD.CrudReading;
 import hausfix.entities.Customer;
 import hausfix.entities.Reading;
-import hausfix.resourcen.ReadingList;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -11,7 +9,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.JAXBException;
 import java.io.StringWriter;
 import java.util.List;

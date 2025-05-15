@@ -1,5 +1,4 @@
 package hausfix.resourcen;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import hausfix.CRUD.CrudCustomer;
@@ -14,10 +13,8 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -103,9 +100,6 @@ public class ImportResource {
         ));
     }
 
-
-
-
     private List<Customer> parseXML(InputStream fileInputStream) throws JAXBException {
         CustomerList wrapper = (CustomerList) JAXBContext
                 .newInstance(CustomerList.class)
@@ -114,6 +108,4 @@ public class ImportResource {
 
         return wrapper.getCustomers();
     }
-
-
 }
