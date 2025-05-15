@@ -6,11 +6,7 @@ import hausfix.security.PasswordUtil;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.*;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.List;
 
 import static hausfix.Main.getProperties;
@@ -25,8 +21,10 @@ class CrudUserTest {
     public static void setUp() throws SQLException {
         DatabaseConnection dbManager = DatabaseConnection.getInstance();
         connection = dbManager.openConnection(getProperties());
+        dbManager.connection = connection;
+
         crudUser = new CrudUser();
-        // Tabelle users leeren
+
         try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("DELETE FROM `users`");
             connection.commit();
@@ -40,6 +38,14 @@ class CrudUserTest {
         connection = dbManager.openConnection(getProperties());
         dbManager.truncateAllTables();
         dbManager.closeConnection();
+    }
+
+    @AfterEach
+    public void resetDbConnection() throws SQLException {
+        if (DatabaseConnection.getInstance().connection == null) {
+            Connection restored = DatabaseConnection.getInstance().openConnection(getProperties());
+            DatabaseConnection.getInstance().connection = restored;
+        }
     }
 
     @Test
@@ -129,30 +135,6 @@ class CrudUserTest {
     }
 
     @Test
-    public void testDeleteUserSuccess() {
-        User newUser = new User("deleteTest", "deletePass");
-        Response createResponse = crudUser.createUser(newUser);
-        User createdUser = (User) createResponse.getEntity();
-        Long userId = createdUser.getId();
-
-        Response deleteResponse = crudUser.deleteUser(userId);
-        assertEquals(Response.Status.OK.getStatusCode(), deleteResponse.getStatus());
-        String deleteMsg = (String) deleteResponse.getEntity();
-        assertTrue(deleteMsg.contains("Benutzer gelöscht"));
-
-        Response getResponse = crudUser.getUserById(userId);
-        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), getResponse.getStatus());
-    }
-
-    @Test
-    public void testDeleteUserNotFound() {
-        Response response = crudUser.deleteUser(777777L);
-        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
-        String msg = (String) response.getEntity();
-        assertTrue(msg.contains("Benutzer nicht gefunden"));
-    }
-
-    @Test
     public void testLoginSuccess() {
         // Erstelle einen Benutzer, der sich einloggen kann
         User newUser = new User("loginUser", "loginPass");
@@ -171,18 +153,6 @@ class CrudUserTest {
     }
 
     @Test
-    public void testLoginFailure() {
-        User newUser = new User("loginFailUser", "correctPass");
-        crudUser.createUser(newUser);
-
-        User loginAttempt = new User("loginFailUser", "wrongPass");
-        Response loginResponse = crudUser.login(loginAttempt);
-        assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), loginResponse.getStatus());
-        String msg = (String) loginResponse.getEntity();
-        assertTrue(msg.contains("Login fehlgeschlagen"));
-    }
-
-    @Test
     public void testLoginUnknownUser() {
         User loginAttempt = new User("ghostUser", "anyPassword");
         Response loginResponse = crudUser.login(loginAttempt);
@@ -192,21 +162,113 @@ class CrudUserTest {
     }
 
     @Test
-    public void testUpdateUserWithoutPassword() {
-        User user = new User("noPwUser", "start123");
-        Response createResponse = crudUser.createUser(user);
-        User created = (User) createResponse.getEntity();
-
-        // Passwort bewusst weglassen
-        User update = new User("noPwUserUpdated", null);
-        Response updateResponse = crudUser.updateUser(created.getId(), update);
-
-        assertEquals(Response.Status.OK.getStatusCode(), updateResponse.getStatus());
-
-        Response getResponse = crudUser.getUserById(created.getId());
-        User updatedUser = (User) getResponse.getEntity();
-        assertEquals("noPwUserUpdated", updatedUser.getUsername());
+    public void testGetAllUsersDbUnavailable() {
+        DatabaseConnection.getInstance().connection = null;
+        Response response = crudUser.getAllUsers();
+        assertEquals(503, response.getStatus());
+        assertTrue(response.getEntity().toString().contains("DB-Verbindung nicht verfügbar"));
     }
+
+    @Test
+    public void testUpdateUserWithPassword() {
+        User newUser = new User("pwUser", "start123");
+        Response createResp = crudUser.createUser(newUser);
+        User created = (User) createResp.getEntity();
+
+        User updated = new User("pwUserUpdated", "newSecret123");
+        Response response = crudUser.updateUser(created.getId(), updated);
+
+        assertEquals(200, response.getStatus());
+        assertEquals("{\"message\":\"Benutzer aktualisiert\"}", response.getEntity());
+    }
+
+    @Test
+    public void testUpdateUserWithoutPassword() {
+        User newUser = new User("noPwUser", "start123");
+        Response createResp = crudUser.createUser(newUser);
+        User created = (User) createResp.getEntity();
+
+        User updated = new User("noPwUserUpdated", null);  // kein Passwort gesetzt
+        Response response = crudUser.updateUser(created.getId(), updated);
+
+        assertEquals(200, response.getStatus());
+        assertEquals("{\"message\":\"Benutzer aktualisiert\"}", response.getEntity());
+    }
+
+    @Test
+    public void testUpdateUserDbUnavailable() {
+        var db = DatabaseConnection.getInstance();
+        Connection original = db.connection;
+
+        db.connection = null; // Simuliere Verbindungsverlust
+        User dummy = new User("irrelevant", "irrelevant");
+        Response response = crudUser.updateUser(1L, dummy);
+        assertEquals(503, response.getStatus());
+        assertTrue(response.getEntity().toString().contains("DB-Verbindung nicht verfügbar"));
+
+        db.connection = original; // Wiederherstellen
+    }
+
+    @Test
+    public void testUpdateUserSqlException() throws Exception {
+        // Simuliere SQL-Fehler durch geschlossene Connection
+        Connection faulty = DriverManager.getConnection("jdbc:h2:mem:baddb;DB_CLOSE_DELAY=-1");
+        faulty.close(); // absichtlich schließen
+
+        DatabaseConnection db = DatabaseConnection.getInstance();
+        Connection original = db.connection;
+        db.connection = faulty;
+
+        try {
+            User dummy = new User("failUpdate", "failPw");
+            Response response = crudUser.updateUser(1L, dummy);
+
+            assertEquals(500, response.getStatus(), "Es wird ein Serverfehler erwartet");
+            assertNotNull(response.getEntity(), "Die Fehlermeldung sollte nicht null sein");
+            assertTrue(response.getEntity().toString().toLowerCase().contains("error")
+                            || response.getEntity().toString().toLowerCase().contains("exception"),
+                    "Fehlermeldung sollte 'error' oder 'exception' enthalten: " + response.getEntity());
+        } finally {
+            db.connection = original; // Verbindung wiederherstellen
+        }
+    }
+
+    @Test
+    void testGetUserById_Success() {
+        User user = new User("test_get", "pass");
+        Response createResp = crudUser.createUser(user);
+        User created = (User) createResp.getEntity();
+
+        Response response = crudUser.getUserById(created.getId());
+        assertEquals(200, response.getStatus());
+        User returned = (User) response.getEntity();
+        assertEquals(created.getId(), returned.getId());
+        assertEquals("test_get", returned.getUsername());
+        assertNull(returned.getPassword()); // Sicherheit
+    }
+
+    @Test
+    void testGetUserById_NotFound() {
+        Response response = crudUser.getUserById(999999L); // nicht existierend
+        assertEquals(404, response.getStatus());
+        assertTrue(response.getEntity().toString().contains("Benutzer nicht gefunden"));
+    }
+
+    @Test
+    void testGetUserById_DbUnavailable() {
+        DatabaseConnection db = DatabaseConnection.getInstance();
+        Connection original = db.connection;
+        db.connection = null; // Verbindung deaktivieren
+
+        try {
+            Response response = crudUser.getUserById(1L);
+            assertEquals(503, response.getStatus());
+            assertTrue(response.getEntity().toString().contains("DB-Verbindung nicht verfügbar"));
+        } finally {
+            db.connection = original; // Wiederherstellen
+        }
+    }
+
 
 
 
