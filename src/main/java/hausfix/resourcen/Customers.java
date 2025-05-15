@@ -13,8 +13,11 @@ import java.util.UUID;
 @Path("/customers")
 public class Customers {
 
-    public Customers(CrudCustomer crudCustomer) {}
-    public Customers() {}
+    public Customers(CrudCustomer crudCustomer) {
+    }
+
+    public Customers() {
+    }
 
     // === POST /customers => Neues Customer-Objekt anlegen
     @POST
@@ -93,9 +96,22 @@ public class Customers {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteCustomer(@PathParam("uuid") String uuid) {
-        UUID customerId = UUID.fromString(uuid);
-        CrudCustomer crudCustomer = new CrudCustomer();
-        Customer customer = crudCustomer.deleteCustomerById(customerId);
-        return Response.ok(customer).build();
+        try {
+            UUID customerId = UUID.fromString(uuid);
+            CrudCustomer crudCustomer = new CrudCustomer();
+            Customer customer = crudCustomer.deleteCustomerById(customerId);
+
+            if (customer == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\":\"Kunde nicht gefunden\"}")
+                        .build();
+            }
+
+            return Response.ok(customer).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"Ungültige UUID\"}")
+                    .build();
+        }
     }
 }
