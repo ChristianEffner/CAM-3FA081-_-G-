@@ -33,26 +33,27 @@ public class Readings {
                 .entity(reading) // Den gespeicherten Kunden mit UUID zurückgeben
                 .build();
     }
+    // 1) PUT mit PathParam
 
     @PUT
+    @Path("/{uuid}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response updateReading(Reading reading) {
-        // Logik zur Aktualisierung eines Ablesungsobjekts
-        CrudReading crudReading = new CrudReading();
-        crudReading.updateReadingById(reading);
-        return Response.ok("Reading updated").build();
+    public Response updateReading(
+            @PathParam("uuid") String uuid,
+            Reading reading
+    ) {
+        reading.setId(UUID.fromString(uuid));
+        new CrudReading().updateReadingById(reading);
+        return Response.noContent().build();  // 204 No Content
     }
 
+    // 2) DELETE ebenfalls mit PathParam
     @DELETE
     @Path("/{uuid}")
-    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteReading(@PathParam("uuid") String uuid) {
-        // Logik zum Löschen eines Ablesungsobjekts
         UUID readingId = UUID.fromString(uuid);
-        CrudReading crudReading = new CrudReading();
-        Reading reading = crudReading.deleteReadingById(readingId);
-        return Response.ok(reading).build();
+        new CrudReading().deleteReadingById(readingId);
+        return Response.noContent().build();  // 204 No Content
     }
 
     @GET

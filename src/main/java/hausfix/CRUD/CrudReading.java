@@ -193,9 +193,6 @@ public class CrudReading extends DatabaseConnection {
     /**
      * Löscht das Reading mit gegebener ID aus der DB.
      */
-    /**
-     * Löscht ein Reading anhand seiner UUID.
-     */
     public Reading deleteReadingById(UUID readingId) {
         String deleteReadingSQL = "DELETE FROM Reading WHERE id = ?;";
         Connection connection = DatabaseConnection.getInstance().connection;
@@ -205,9 +202,9 @@ public class CrudReading extends DatabaseConnection {
 
             int rowsAffected = statement.executeUpdate();
             if (rowsAffected > 0) {
-                System.out.println("Reading mit ID " + readingId + " wurde gelöscht.");
+                System.out.println("Reading with ID " + readingId + " was deleted successfully.");
             } else {
-                System.out.println("Kein Reading mit ID " + readingId + " gefunden.");
+                System.out.println("No reading found with ID " + readingId);
             }
 
         } catch (SQLException e) {
@@ -216,12 +213,34 @@ public class CrudReading extends DatabaseConnection {
         return null;
     }
 
-
     /**
      * Aktualisiert ein Reading in der DB anhand seiner ID.
      */
     public void updateReadingById(Reading reading) {
-        // Implementierung ergänzen, falls benötigt
+        String updateReadingSQL = "UPDATE Reading SET comment = ?, customer_id = ?, date_of_reading = ?, kind_of_meter = ?, meter_count = ?, meter_id = ?, substitute = ? WHERE id = ?;";
+        Connection connection = DatabaseConnection.getInstance().connection;
+
+        try (var preparedStatement = connection.prepareStatement(updateReadingSQL)) {
+
+            preparedStatement.setString(1, reading.getComment());
+            preparedStatement.setString(2, reading.getCustomer().getId().toString());
+            preparedStatement.setDate(3, java.sql.Date.valueOf(reading.getDateOfReading()));
+            preparedStatement.setString(4, reading.getKindOfMeter().toString());
+            preparedStatement.setDouble(5, reading.getMeterCount());
+            preparedStatement.setString(6, reading.getMeterId());
+            preparedStatement.setBoolean(7, reading.getSubstitute());
+            preparedStatement.setObject(8, reading.getId());
+
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Reading with ID " + reading.getId() + " was updated successfully.");
+            } else {
+                System.out.println("No reading found with ID " + reading.getId());
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
