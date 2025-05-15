@@ -134,10 +134,12 @@ public class readingsTest {
 
         // Kommentar ändern
         reading.setComment("Updated Comment");
-        Response response = readingsResource.updateReading(reading);
-
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-        assertEquals("Reading updated", response.getEntity());
+       // Jetzt mit PathParam aufrufen:
+        String idString = reading.getId().toString();
+        Response response = readingsResource.updateReading(idString, reading);
+                // Wir erwarten 204 No Content (keinen Body)
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+        assertNull(response.getEntity(), "Bei 204 No Content liefert der Body null.");
     }
 
      */

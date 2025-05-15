@@ -24,15 +24,15 @@ public class ExportResource {
 
         switch (format.toLowerCase()) {
             case "json":
-                return Response.ok(customers, MediaType.APPLICATION_JSON).build();
+                return Response.ok(customers, MediaType.APPLICATION_JSON)
+                        .header("Content-Disposition", "attachment; filename=\"customers.json\"")
+                        .build();
 
             case "xml":
                 CustomerList customerListWrapper = new CustomerList(customers);
                 return Response.ok(customerListWrapper, MediaType.APPLICATION_XML)
                         .header("Content-Disposition", "attachment; filename=\"customers.xml\"")
                         .build();
-
-
 
             case "csv":
                 return Response.ok(convertToCSV(customers))
@@ -44,6 +44,7 @@ public class ExportResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiges Format").build();
         }
     }
+
 
 
     private String convertToCSV(List<Customer> customers) {

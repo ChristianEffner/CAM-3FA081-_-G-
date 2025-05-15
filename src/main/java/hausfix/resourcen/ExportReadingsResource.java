@@ -30,16 +30,19 @@ public class ExportReadingsResource {
                 ? crudReading.readAllReadingForUser(userId)
                 : crudReading.readAllReading();
 
-        // Filtere ungültige Readings (ohne Customer oder ID) heraus
         readings.removeIf(r -> r.getCustomer() == null || r.getCustomer().getId() == null);
 
         if (readings.isEmpty()) {
-            return Response.status(Response.Status.NO_CONTENT).entity("Keine Ablesedaten gefunden").build();
+            return Response.status(Response.Status.NO_CONTENT)
+                    .entity("Keine Ablesedaten gefunden")
+                    .build();
         }
 
         switch (format.toLowerCase()) {
             case "json":
-                return Response.ok(readings, MediaType.APPLICATION_JSON).build();
+                return Response.ok(readings, MediaType.APPLICATION_JSON)
+                        .header("Content-Disposition", "attachment; filename=\"readings.json\"")
+                        .build();
 
             case "xml":
                 try {
@@ -64,9 +67,12 @@ public class ExportReadingsResource {
                         .build();
 
             default:
-                return Response.status(Response.Status.BAD_REQUEST).entity("Ungültiges Format").build();
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("Ungültiges Format")
+                        .build();
         }
     }
+
 
 
     // Hilfsmethode zum CSV-Export
