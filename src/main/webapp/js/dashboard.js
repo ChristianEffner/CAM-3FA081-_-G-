@@ -2,112 +2,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const apiBaseUrl = "http://localhost:8080";
   const userId = localStorage.getItem("userId");
 
-  // Falls keine User-ID gefunden wird, leite zum Login um
+  // Kein Login? → zurück zur Startseite
   if (!userId) {
     window.location.href = "index.html";
     return;
   }
 
-  // Kunden für den aktuell angemeldeten User laden und Zähler aktualisieren
+  // ---------------- Kunden zählen ----------------
   fetch(`${apiBaseUrl}/customers?userId=${userId}`)
-    .then((response) => response.json())
-    .then((customers) => {
+    .then(res => res.json())
+    .then(customers => {
       document.getElementById("customerCount").textContent = customers.length;
     })
-    .catch((error) => console.error("Error fetching customers:", error));
+    .catch(err => {
+      console.error("Error fetching customers:", err);
+      document.getElementById("customerCount").textContent = "0";
+    });
 
-  // Readings für den aktuell angemeldeten User laden und Zähler sowie Diagramme erstellen
+  // --------------- Readings zählen ---------------
   fetch(`${apiBaseUrl}/readings?userId=${userId}`)
-    .then((response) => response.json())
-    .then((readings) => {
+    .then(res => res.json())
+    .then(readings => {
       document.getElementById("readingCount").textContent = readings.length;
-      buildGenderChart(readings);
-      buildReadingChart(readings);
     })
-    .catch((error) => console.error("Error fetching readings:", error));
-
-  // Erstellt einen Pie-Chart zur Geschlechterverteilung
-  function buildGenderChart(readings) {
-    const genderCounts = {};
-    readings.forEach((r) => {
-      if (r.customer && r.customer.gender) {
-        const gender = r.customer.gender;
-        genderCounts[gender] = (genderCounts[gender] || 0) + 1;
-      }
+    .catch(err => {
+      console.error("Error fetching readings:", err);
+      document.getElementById("readingCount").textContent = "0";
     });
-    const labels = Object.keys(genderCounts);
-    const data = Object.values(genderCounts);
-    const ctx = document.getElementById("genderChart").getContext("2d");
-    new Chart(ctx, {
-      type: "pie",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: "Geschlechterverteilung",
-          data: data,
-          backgroundColor: ["#FFCE56", "#36A2EB", "#FF6384" ]
-          // Die Farbvergebung ist jetzt für die Arrays gelöst, kannst du das bitte ändern, sodass die Gender
-          // die möglich wören [M,D,W] jeder feste Farbwerte haben und nicht nur die Stellen vom Array.
-          // Männlich (M)  Blau
-          // Weiblich (w) Rosa
-          // Divers (D) such eine passende Farbe aus.
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: "bottom" },
-          title: { display: true, text: "Verteilung der Geschlechter in den Ablesungen" }
-        },
-        layout: {
-          padding: { top: 20, bottom: 20 }
-        }
-      }
-    });
-  }
-
-  // Erstellt einen Bar-Chart zur Anzahl der Readings pro Zählertyp
-  function buildReadingChart(readings) {
-    const meterTypeCounts = {};
-    readings.forEach((r) => {
-      if (r.kindOfMeter) {
-        const meterType = r.kindOfMeter;
-        meterTypeCounts[meterType] = (meterTypeCounts[meterType] || 0) + 1;
-      }
-    });
-    const labels = Object.keys(meterTypeCounts);
-    const data = Object.values(meterTypeCounts);
-    const ctx = document.getElementById("readingChart").getContext("2d");
-    new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: "Anzahl Ablesungen",
-          data: data,
-          backgroundColor: "rgba(75, 192, 192, 0.5)",
-          borderColor: "rgba(75, 192, 192, 1)",
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          title: { display: true, text: "Ablesungen nach Zählertyp" }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { precision: 0 }
-          }
-        },
-        layout: {
-          padding: { top: 20, bottom: 20 }
-        }
-      }
-    });
-  }
 });
