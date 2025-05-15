@@ -110,11 +110,20 @@ body {
     text-align: center;
 }
 
-/* replace existing .chart-container */
 .chart-container {
-  max-width: 800px;
-  margin: 0 auto 2rem;   /* zentriert und 2rem Abstand unten */
-  height: 300px;
+  display: flex;            /* Flex-Container */
+  justify-content: center;  /* horizontal zentrieren */
+  align-items: center;      /* vertikal mittig (falls nötig) */
+  width: 100%;
+  max-width: 900px;
+  margin: 1rem auto 2rem;
+  height: 450px;            /* Chart etwas größer */
+}
+
+/* Stelle sicher, dass das Canvas die volle Container-Breite nutzt */
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Einheitliche Tabellen-Höhen + Button-Größen ===== */
