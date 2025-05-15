@@ -1,9 +1,7 @@
 package hausfix.rest;
-
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
 import java.io.File;
 import java.nio.file.Files;
 
@@ -12,8 +10,13 @@ public class StaticResourceHandler {
 
     private final String baseDirectory;
 
-    public StaticResourceHandler() {
+
+    public StaticResourceHandler(String absolutePath) {
         // Dynamically resolve base directory to the correct path
+        this.baseDirectory = System.getProperty("user.dir") + "/src/main/webapp";
+    }
+
+    public StaticResourceHandler() {
         this.baseDirectory = System.getProperty("user.dir") + "/src/main/webapp";
     }
 
