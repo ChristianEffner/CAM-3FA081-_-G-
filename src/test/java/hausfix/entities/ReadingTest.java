@@ -1,5 +1,6 @@
 package hausfix.entities;
 
+import hausfix.enums.Gender;
 import hausfix.enums.KindOfMeter;
 import hausfix.interfaces.ICustomer;
 import org.junit.jupiter.api.Test;
@@ -17,14 +18,6 @@ class ReadingTest {
         Reading reading = new Reading();
         reading.setComment("Test Comment");
         assertEquals("Test Comment", reading.getComment());
-    }
-
-    @Test
-    void setCustomerAndGetCustomer() {
-        ICustomer mockCustomer = mock(ICustomer.class);
-        Reading reading = new Reading();
-        reading.setCustomer(mockCustomer);
-        assertEquals(mockCustomer, reading.getCustomer());
     }
 
     @Test
@@ -64,16 +57,6 @@ class ReadingTest {
     }
 
     @Test
-    void printDateOfReading() {
-        LocalDate testDate = LocalDate.of(2023, 1, 1);
-        Reading reading = new Reading();
-        reading.setDateOfReading(testDate);
-
-        LocalDate printedDate = reading.printDateOfReading();
-        assertNull(printedDate, "Die Methode printDateOfReading() gibt immer null zurück.");
-    }
-
-    @Test
     void setIdAndGetId() {
         UUID testId = UUID.randomUUID();
         Reading reading = new Reading();
@@ -103,4 +86,67 @@ class ReadingTest {
         assertEquals(meterID, reading.getMeterId());
         assertEquals(substitute, reading.getSubstitute());
     }
+
+    @Test
+    void testConstructorAndGetters() {
+        UUID id = UUID.randomUUID();
+        String comment = "Testkommentar";
+        Customer customer = new Customer(UUID.randomUUID(), "Max", "Muster", LocalDate.of(1990, 1, 1), Gender.M);
+        LocalDate date = LocalDate.of(2024, 5, 15);
+        KindOfMeter meter = KindOfMeter.WASSER;
+        double count = 123.45;
+        String meterId = "M001";
+        boolean substitute = true;
+        long userId = 1L;
+
+        Reading reading = new Reading(id, comment, customer, date, meter, count, meterId, substitute, userId);
+
+        assertEquals(id, reading.getId());
+        assertEquals(comment, reading.getComment());
+        assertEquals(customer, reading.getCustomer());
+        assertEquals(date, reading.getDateOfReading());
+        assertEquals(meter, reading.getKindOfMeter());
+        assertEquals(count, reading.getMeterCount());
+        assertEquals(meterId, reading.getMeterId());
+        assertTrue(reading.getSubstitute());
+        assertEquals(userId, reading.getUserId());
+    }
+
+    @Test
+    void testSetterMethods() {
+        Reading reading = new Reading();
+        UUID id = UUID.randomUUID();
+        Customer customer = new Customer(UUID.randomUUID(), "Erika", "Musterfrau", LocalDate.of(1985, 1, 1), Gender.W);
+
+        reading.setId(id);
+        reading.setComment("Kommentar");
+        reading.setCustomer(customer);
+        reading.setDateOfReading(LocalDate.of(2023, 12, 24));
+        reading.setKindOfMeter(KindOfMeter.STROM);
+        reading.setMeterCount(456.78);
+        reading.setMeterId("Z123");
+        reading.setSubstitute(false);
+        reading.setUserId(5L);
+
+        assertEquals(id, reading.getId());
+        assertEquals("Kommentar", reading.getComment());
+        assertEquals(customer, reading.getCustomer());
+        assertEquals(LocalDate.of(2023, 12, 24), reading.getDateOfReading());
+        assertEquals(KindOfMeter.STROM, reading.getKindOfMeter());
+        assertEquals(456.78, reading.getMeterCount());
+        assertEquals("Z123", reading.getMeterId());
+        assertFalse(reading.getSubstitute());
+        assertEquals(5L, reading.getUserId());
+    }
+
+    @Test
+    void testPrintDateOfReading() {
+        LocalDate expected = LocalDate.of(2024, 4, 4);
+        Reading reading = new Reading();
+        reading.setDateOfReading(expected);
+
+        LocalDate result = reading.printDateOfReading();
+        assertEquals(expected, result);
+    }
+
 }

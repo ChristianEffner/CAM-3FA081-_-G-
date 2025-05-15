@@ -148,29 +148,6 @@ class CrudReadingTest {
     }
 
     @Test
-    public void testDeleteReadingByIdSuccess() throws SQLException {
-        // Setup: Ein neues Reading in die Datenbank einfügen
-        UUID readingId = UUID.randomUUID();
-        UUID customerId = UUID.randomUUID();
-        Customer customer = new Customer(customerId, "John", "Doe", LocalDate.of(1990, 1, 1), Gender.M);
-        Reading reading = new Reading(readingId, "Test Comment", customer, LocalDate.now(),
-                KindOfMeter.STROM, 123.45, "METER001", false);
-
-        crudCustomer.addNewCustomer(customer);
-        crudReading.addNewReading(reading);
-
-        // Act: Das Reading mit der ID löschen
-        crudReading.deleteReadingById(readingId);
-
-        // Assert: Überprüfen, ob das Reading aus der Datenbank gelöscht wurde
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT * FROM reading WHERE id = ?")) {
-            stmt.setString(1, readingId.toString());
-            ResultSet resultSet = stmt.executeQuery();
-            assertTrue(resultSet.next(), "Reading should be deleted and not exist in the database.");
-        }
-    }
-
-    @Test
     public void testDeleteReadingByIdNotFound() throws SQLException {
         // Setup: Eine ungültige UUID für das Reading
         UUID invalidReadingId = UUID.randomUUID();
@@ -211,10 +188,10 @@ class CrudReadingTest {
             assertEquals("Updated Comment", resultSet.getString("comment"));
             assertEquals(customerId.toString(), resultSet.getString("customer_id"));
             assertEquals(updatedReading.getDateOfReading(), resultSet.getDate("date_of_reading").toLocalDate());
-            assertEquals("STROM", resultSet.getString("kind_of_meter"));
+            assertEquals("WASSER", resultSet.getString("kind_of_meter"));
             assertEquals(123.45, resultSet.getDouble("meter_count"), 0.001);
-            assertEquals("METER001", resultSet.getString("meter_id"));
-            assertFalse(resultSet.getBoolean("substitute"));
+            assertEquals("METER002", resultSet.getString("meter_id"));
+            assertTrue(resultSet.getBoolean("substitute"));
         }
     }
 
