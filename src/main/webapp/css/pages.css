@@ -99,11 +99,39 @@ body {
     margin-bottom: 1rem;
 }
 
+#content h3 {
+    padding : 15px;
+    margin: 0px;
+}
 #content p {
     font-size: 1.2rem;
     line-height: 1.8;
     color: #555;
     text-align: center;
+}
+
+/* replace existing .chart-container */
+.chart-container {
+  max-width: 800px;
+  margin: 0 auto 2rem;   /* zentriert und 2rem Abstand unten */
+  height: 300px;
+}
+
+/* Einheitliche Tabellen-Höhen + Button-Größen ===== */
+.table.fixed-table>thead>tr>th,
+.table.fixed-table>tbody>tr>td{
+  padding-top:.55rem;
+  padding-bottom:.55rem;
+  vertical-align:middle;
+}
+
+.table.fixed-table>tbody>tr{
+  height:48px;
+}
+
+.table.fixed-table .btn{
+  padding:.35rem .75rem;
+  font-size:.875rem;
 }
 
 /* Footer */
@@ -149,6 +177,7 @@ footer {
   /* Damit sich die Karte an die Höhe der Spalte anpasst */
 }
 
+.
 
 /* Responsive Anpassungen */
 @media (max-width: 1024px) {
@@ -162,9 +191,14 @@ footer {
     }
 
     #content {
-        margin-left: 0;
         width: 100%;
-        padding: 20px;
+        margin-left: 220px;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+
+        /* statt center … */
+        align-items: flex-start;   /* ► linkbündig */
     }
 
     .toggle-sidebar {

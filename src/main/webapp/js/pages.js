@@ -31,28 +31,6 @@ document.addEventListener("DOMContentLoaded", function () {
     console.error("Kein gültiger userId im LocalStorage gefunden.");
   }
 
-  // Dynamischer Zähler für Statistiken: Kunden
-  if (document.getElementById("customerCount")) {
-    // Hier wird nun der Query-Parameter userId mitgesendet
-    fetch(`http://localhost:8080/customers?userId=${userId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        document.getElementById("customerCount").textContent = data.length;
-      })
-      .catch((error) => console.error("Fehler beim Abrufen der Kundenanzahl:", error));
-  }
-
-  // Dynamischer Zähler für Statistiken: Readings
-  if (document.getElementById("readingCount")) {
-    // Auch hier wird der Query-Parameter userId angehängt, sodass nur die Readings des aktuellen Users geladen werden
-    fetch(`http://localhost:8080/readings?userId=${userId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        document.getElementById("readingCount").textContent = data.length;
-      })
-      .catch((error) => console.error("Fehler beim Abrufen der Ablesungen:", error));
-  }
-
   // Globales Handling für modale Probleme (Fix für Particles und Modale)
   function fixModalOverlay() {
     const modalBackdrops = document.querySelectorAll(".modal-backdrop");
