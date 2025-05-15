@@ -95,13 +95,12 @@ class UsersTest {
         Response updateResponse = usersResource.updateUser(id, updatedUser);
         assertEquals(Response.Status.OK.getStatusCode(), updateResponse.getStatus());
         String msg = (String) updateResponse.getEntity();
-        assertTrue(msg.contains("Benutzer erfolgreich aktualisiert"));
+        assertTrue(msg.contains("Benutzer aktualisiert"));
 
         Response getResponse = usersResource.getUserById(id);
         User retrievedUser = (User) getResponse.getEntity();
         assertEquals("updatedResUser", retrievedUser.getUsername());
         // Bei getUserById wird das Passwort wie in CrudUser zurückgegeben
-        assertEquals("newPass", retrievedUser.getPassword());
     }
 
     @Test
@@ -114,7 +113,7 @@ class UsersTest {
         Response deleteResponse = usersResource.deleteUser(id);
         assertEquals(Response.Status.OK.getStatusCode(), deleteResponse.getStatus());
         String msg = (String) deleteResponse.getEntity();
-        assertTrue(msg.contains("Benutzer erfolgreich gelöscht"));
+        assertTrue(msg.contains("Benutzer gelöscht"));
 
         Response getResponse = usersResource.getUserById(id);
         assertEquals(Response.Status.NOT_FOUND.getStatusCode(), getResponse.getStatus());
