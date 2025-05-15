@@ -1,28 +1,27 @@
+// CustomerList.java
 package hausfix.resourcen;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import hausfix.entities.Customer;
-import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.*;
+
 import java.util.List;
 
 @XmlRootElement(name = "customers")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class CustomerList {
-    private List<Customer> customers;
 
     @JsonProperty("customers")
     @XmlElement(name = "customer")
-    public List<Customer> getCustomers() {
-        return customers;
-    }
-
-    public void setCustomers(List<Customer> customers) {
-        this.customers = customers;
-    }
+    private List<Customer> customers;
 
     public CustomerList() {}
+    public CustomerList(List<Customer> list) {
+        this.customers = list;
+    }
 
-    public CustomerList(List<Customer> customers) {
+    public List<Customer> getCustomers() { return customers; }
+    public void setCustomers(List<Customer> customers) {
         this.customers = customers;
     }
 }

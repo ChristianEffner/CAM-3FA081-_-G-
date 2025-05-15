@@ -1,52 +1,89 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const apiBaseUrl = "http://localhost:8080";
+    const apiBaseUrl = "http://localhost:8080";
 
-  /**
-   * Exportiert Kunden in das gewählte Format.
-   */
- function exportCustomers(format) {
-     console.log(`Exportiere Kunden als ${format}...`);
-     window.location.href = `${apiBaseUrl}/export/customers?format=${format}`;
- }
+    // === Kunden Export ===
+    function exportCustomers(format) {
+        console.log(`Exportiere Kunden als ${format}...`);
+        window.location.href = `${apiBaseUrl}/export/customers?format=${format}`;
+    }
 
+    // === Kunden Import ===
+    async function importCustomers() {
+        const fileInput = document.getElementById("fileInput");
+        if (!fileInput.files.length) {
+            alert("Bitte eine Datei auswählen.");
+            return;
+        }
 
-  /**
-   * Importiert Kunden aus der hochgeladenen Datei.
-   */
-  async function importCustomers() {
-      const fileInput = document.getElementById("fileInput");
-      if (!fileInput.files.length) {
-          alert("Bitte eine Datei auswählen.");
-          return;
-      }
-      const format = document.getElementById("importFormat").value;
-      const file = fileInput.files[0];
+        const format = document.getElementById("importFormat").value;
+        const file = fileInput.files[0];
 
-      const formData = new FormData();
-      formData.append("file", file);
+        const formData = new FormData();
+        formData.append("file", file);
 
-      try {
-          console.log(`Importiere Kunden aus ${file.name} (${format})...`);
-         const response = await fetch(`${apiBaseUrl}/import/customers?format=${format}`, {
-             method: "POST",
-             body: formData
-         });
+        try {
+            console.log(`Importiere Kunden aus ${file.name} (${format})...`);
+            const response = await fetch(`${apiBaseUrl}/import/customers?format=${format}`, {
+                method: "POST",
+                body: formData
+            });
 
+            const result = await response.text();
+            if (!response.ok) throw new Error(result);
 
-          if (!response.ok) {
-              throw new Error("Import fehlgeschlagen, HTTP " + response.status);
-          }
-          alert("Import erfolgreich!");
-      } catch (err) {
-          console.error("Fehler beim Import:", err);
-          alert("Fehler: " + err.message);
-      }
-  }
+            alert("✅ Kundenimport erfolgreich!");
+        } catch (err) {
+            console.error("Fehler beim Kundenimport:", err);
+            alert("❌ Fehler: " + err.message);
+        }
+    }
 
+    // === Ablesedaten Export ===
+    function exportReadings(format) {
+        console.log(`Exportiere Ablesedaten als ${format}...`);
+        window.location.href = `${apiBaseUrl}/export/readings?format=${format}&userId=1`;
+    }
 
-  // Event-Listener für die Buttons
-  document.getElementById("exportJsonBtn").addEventListener("click", () => exportCustomers("json"));
-  document.getElementById("exportXmlBtn").addEventListener("click", () => exportCustomers("xml"));
-  document.getElementById("exportCsvBtn").addEventListener("click", () => exportCustomers("csv"));
-  document.getElementById("importBtn").addEventListener("click", importCustomers);
+    // === Ablesedaten Import ===
+    async function importReadings() {
+        const fileInput = document.getElementById("filereadingInput");
+        if (!fileInput.files.length) {
+            alert("Bitte eine Datei auswählen.");
+            return;
+        }
+
+        const format = document.getElementById("importreadingFormat").value;
+        const file = fileInput.files[0];
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            console.log(`Importiere Ablesedaten aus ${file.name} (${format})...`);
+            const response = await fetch(`${apiBaseUrl}/import/readings?format=${format}`, {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.text();
+            if (!response.ok) throw new Error(result);
+
+            alert("✅ Ablesedatenimport erfolgreich!");
+        } catch (err) {
+            console.error("Fehler beim Ablesedatenimport:", err);
+            alert("❌ Fehler: " + err.message);
+        }
+    }
+
+    // === Event-Listener Kunden ===
+    document.getElementById("exportJsonBtn").addEventListener("click", () => exportCustomers("json"));
+    document.getElementById("exportXmlBtn").addEventListener("click", () => exportCustomers("xml"));
+    document.getElementById("exportCsvBtn").addEventListener("click", () => exportCustomers("csv"));
+    document.getElementById("importBtn").addEventListener("click", importCustomers);
+
+    // === Event-Listener Ablesedaten ===
+    document.getElementById("exportcustJsonBtn").addEventListener("click", () => exportReadings("json"));
+    document.getElementById("exportcustXmlBtn").addEventListener("click", () => exportReadings("xml"));
+    document.getElementById("exportcustCsvBtn").addEventListener("click", () => exportReadings("csv"));
+    document.getElementById("importreadingBtn").addEventListener("click", importReadings);
 });

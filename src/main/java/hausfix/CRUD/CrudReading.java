@@ -193,10 +193,29 @@ public class CrudReading extends DatabaseConnection {
     /**
      * Löscht das Reading mit gegebener ID aus der DB.
      */
+    /**
+     * Löscht ein Reading anhand seiner UUID.
+     */
     public Reading deleteReadingById(UUID readingId) {
-        // Implementierung ergänzen, falls benötigt
+        String deleteReadingSQL = "DELETE FROM Reading WHERE id = ?;";
+        Connection connection = DatabaseConnection.getInstance().connection;
+
+        try (PreparedStatement statement = connection.prepareStatement(deleteReadingSQL)) {
+            statement.setObject(1, readingId);
+
+            int rowsAffected = statement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Reading mit ID " + readingId + " wurde gelöscht.");
+            } else {
+                System.out.println("Kein Reading mit ID " + readingId + " gefunden.");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return null;
     }
+
 
     /**
      * Aktualisiert ein Reading in der DB anhand seiner ID.
