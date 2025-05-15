@@ -33,7 +33,7 @@ public class Readings {
                 .entity(reading) // Den gespeicherten Kunden mit UUID zurückgeben
                 .build();
     }
-    // 1) PUT mit PathParam
+
 
 
     @PUT
@@ -48,13 +48,36 @@ public class Readings {
         return Response.ok().build();  // 204 No Content
     }
 
+    /*
     // 2) DELETE ebenfalls mit PathParam
     @DELETE
     @Path("/{uuid}")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteReading(@PathParam("uuid") String uuid) {
         UUID readingId = UUID.fromString(uuid);
         new CrudReading().deleteReadingById(readingId);
         return Response.ok().build();
+    }
+
+     */
+
+    @DELETE
+    @Path("/{uuid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteReading(@PathParam("uuid") String uuid) {
+        UUID readingId = UUID.fromString(uuid);
+
+        CrudReading crudReading = new CrudReading();
+        Reading reading = crudReading.readReading(readingId);  // Vorher lesen
+
+        if (reading == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\":\"Reading not found\"}")
+                    .build();
+        }
+
+        crudReading.deleteReadingById(readingId);  // Dann löschen
+        return Response.ok(reading).build();  // JSON zurückgeben
     }
 
     @GET

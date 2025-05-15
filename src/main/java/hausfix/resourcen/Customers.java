@@ -93,13 +93,35 @@ public class Customers {
     }
 
     // === DELETE /customers/{uuid}
+    /*
     @Path("/{uuid}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteCustomer(@PathParam("uuid") String uuid) {
         UUID customerId = UUID.fromString(uuid);
         new CrudCustomer().deleteCustomerById(customerId);
-        return Response.ok().build();
+        CrudCustomer crudCustomer = new CrudCustomer();
+        Customer customer = crudCustomer.readCustomer(customerId);
+        return Response.ok(customer).build();
 
+     */
+
+    @Path("/{uuid}")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteCustomer(@PathParam("uuid") String uuid) {
+        UUID customerId = UUID.fromString(uuid);
+
+        CrudCustomer crudCustomer = new CrudCustomer();
+        Customer customer = crudCustomer.readCustomer(customerId);  // Erst lesen
+        if (customer == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\":\"Customer not found\"}")
+                    .build();
+        }
+
+        crudCustomer.deleteCustomerById(customerId);  // Dann löschen
+        return Response.ok(customer).build();  // Gibt JSON mit vorherigen Daten zurück
     }
+
 }
