@@ -1,6 +1,7 @@
 package hausfix.resourcen;
 
 import hausfix.CRUD.CrudCustomer;
+import hausfix.CRUD.CrudReading;
 import hausfix.entities.Customer;
 import hausfix.rest.RestCustomer;
 import jakarta.ws.rs.*;
@@ -96,22 +97,9 @@ public class Customers {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteCustomer(@PathParam("uuid") String uuid) {
-        try {
-            UUID customerId = UUID.fromString(uuid);
-            CrudCustomer crudCustomer = new CrudCustomer();
-            Customer customer = crudCustomer.deleteCustomerById(customerId);
+        UUID customerId = UUID.fromString(uuid);
+        new CrudCustomer().deleteCustomerById(customerId);
+        return Response.ok().build();
 
-            if (customer == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity("{\"error\":\"Kunde nicht gefunden\"}")
-                        .build();
-            }
-
-            return Response.ok(customer).build();
-        } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\":\"Ungültige UUID\"}")
-                    .build();
-        }
     }
 }

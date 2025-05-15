@@ -35,6 +35,7 @@ public class Readings {
     }
     // 1) PUT mit PathParam
 
+
     @PUT
     @Path("/{uuid}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -44,7 +45,7 @@ public class Readings {
     ) {
         reading.setId(UUID.fromString(uuid));
         new CrudReading().updateReadingById(reading);
-        return Response.noContent().build();  // 204 No Content
+        return Response.ok().build();  // 204 No Content
     }
 
     // 2) DELETE ebenfalls mit PathParam
@@ -53,7 +54,7 @@ public class Readings {
     public Response deleteReading(@PathParam("uuid") String uuid) {
         UUID readingId = UUID.fromString(uuid);
         new CrudReading().deleteReadingById(readingId);
-        return Response.noContent().build();  // 204 No Content
+        return Response.ok().build();
     }
 
     @GET
